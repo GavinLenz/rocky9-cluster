@@ -38,7 +38,25 @@ common_limits:
     value: 65535
 
 server_ip: "{{ network_config.server_ip }}"
-controller_core_repo_ids:
-  - baseos
-  - appstream
+controller_core_repo_default_distribution: rocky
+controller_core_repo_map:
+  rocky:
+    - baseos
+    - appstream
+  almalinux:
+    - baseos
+    - appstream
+  redhat:
+    - rhel-9-for-x86_64-baseos-rpms
+    - rhel-9-for-x86_64-appstream-rpms
+  "red hat enterprise linux":
+    - rhel-9-for-x86_64-baseos-rpms
+    - rhel-9-for-x86_64-appstream-rpms
+  redhatenterpriseserver:
+    - rhel-9-for-x86_64-baseos-rpms
+    - rhel-9-for-x86_64-appstream-rpms
+  rhel:
+    - rhel-9-for-x86_64-baseos-rpms
+    - rhel-9-for-x86_64-appstream-rpms
+controller_core_repo_ids: []
 slurm_repo_gpgcheck: "{{ slurm_mirror.gpgcheck | default(0) }}"
