@@ -11,7 +11,7 @@
             "pxe_iface": "enp5s0",
             "pxe_server_ip": "10.0.0.1",
             "pxe_install_drive": "nvme0n1",
-            "pxe_default_target": "local",
+            "pxe_default_target": "fresh",
             "pxe_ipxe_menu_items": [
               {
                 "key": "i",
@@ -26,7 +26,8 @@
             ],
             "ansible_become": true,
             "ansible_become_method": "sudo",
-            "ansible_become_user": "root"
+            "ansible_become_user": "root",
+            "ansible_become_password": "your_sudo_password"
           }
         }
       },
@@ -68,9 +69,8 @@
     "vars": {
       "cluster_name": "cluster",
       "cluster_description": "",
-      "cluster_repo_root": "/root/work/rocky-cluster",
-      "cluster_config_root": "/root/work/rocky-cluster/config",
-      "cluster_meta_root": "/root/work/rocky-cluster/meta",
+      "cluster_repo_root": "/root/work/rocky9-cluster",
+      "cluster_config_root": "/root/work/rocky9-cluster/config",
       "cluster_profiles": {
         "profiles": {
           "common": {
@@ -106,7 +106,7 @@
         "server_ip": "10.0.0.1",
         "subnet": "10.0.0.0/24",
         "netmask": "255.255.255.0",
-        "gateway": "10.0.0.1",
+        "gateway": null,
         "dns": "8.8.8.8",
         "dhcp_range": {
           "start": "10.0.0.10",
@@ -141,7 +141,7 @@
           "efi": []
         },
         "ipxe": {
-          "default_target": "local",
+          "default_target": "fresh",
           "timeout_ms": 5000,
           "menu": [
             {
@@ -175,10 +175,30 @@
           "description": "Rocky Linux 9 minimal image."
         }
       },
+      "repos": {
+        "rocky9_dvd": {
+          "name": "Rocky-9.6-x86_64-dvd.iso",
+          "url": "https://download.rockylinux.org/pub/rocky/9/isos/x86_64/Rocky-9.6-x86_64-dvd.iso",
+          "mount_path": "/var/www/html/os",
+          "vendor": "rocky",
+          "description": "Rocky Linux 9 dvd for internal repo."
+        }
+      },
       "pxe_runtime_credentials": {
         "username": "ansible",
-        "root_password_hash": "$6$rounds=656000$rwYmyVEKZzCSOelR$cltA77Zgjkf.J5swy/1XvcW5REooCMXP7H6NtOXCcR7dXkYVuZIS.4w72jGS5KQSQW4yvWusYtSE7U24zz4fQ1",
-        "local_user_password_hash": "$6$rounds=656000$rwYmyVEKZzCSOelR$cltA77Zgjkf.J5swy/1XvcW5REooCMXP7H6NtOXCcR7dXkYVuZIS.4w72jGS5KQSQW4yvWusYtSE7U24zz4fQ1"
+        "root_password_hash": null,
+        "local_user_password_hash": null
+      },
+      "slurm_mirror": {
+        "url": "https://dl.rockylinux.org/pub/sig/9/hpc/x86_64/hpc-core/",
+        "repoid": "rocky-sig-hpc-core",
+        "name": "Rocky Linux 9 - SIG HPC Core",
+        "mirror_root": "/srv/repos/slurm",
+        "publish_root": "/var/www/html/slurm",
+        "gpgcheck": 1,
+        "gpgkey_url": "/etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-9",
+        "newest_only": true,
+        "delete": true
       }
     }
   }

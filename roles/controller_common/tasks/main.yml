@@ -36,58 +36,13 @@
   loop: "{{ common_users | selectattr('authorized_key','defined') }}"
   when: item.authorized_key | length > 0
 
-# 4. Ensure core Rocky repos enabled
-- name: Discover defined DNF repositories
-  ansible.builtin.command:
-    argv:
-      - grep
-      - -Rho
-      - '^\[.*\]'
-      - /etc/yum.repos.d
-  register: controller_repo_scan
-  changed_when: false
-  failed_when: controller_repo_scan.rc not in [0, 1]
-
-- name: Cache controller repo IDs
-  ansible.builtin.set_fact:
-    controller_available_repo_ids: >-
-      {{ controller_repo_scan.stdout_lines | default([])
-         | map('regex_replace', '^\\[(.+)\\]$', '\\1')
-         | list | unique }}
-
-- name: Determine required repo IDs per distribution
-  ansible.builtin.set_fact:
-    controller_core_repo_ids_effective: >-
-      {{ controller_core_repo_ids if controller_core_repo_ids | length > 0 else
-         (controller_core_repo_map[controller_repo_distribution_key]
-          | default(controller_core_repo_map[controller_core_repo_default_distribution])) }}
-  vars:
-    controller_repo_distribution_key: "{{ ansible_distribution | default(controller_core_repo_default_distribution) | lower }}"
-
-- name: Validate required repo definitions exist
-  ansible.builtin.fail:
-    msg: >-
-      Unable to locate repo id(s) {{ missing_repos | join(', ') }} under /etc/yum.repos.d.
-      Update controller_core_repo_ids with the IDs present on this host before rerunning.
-  when: missing_repos | length > 0
-  vars:
-    missing_repos: "{{ controller_core_repo_ids_effective | difference(controller_available_repo_ids | default([])) }}"
-
-- name: Ensure required repos enabled
-  ansible.builtin.command:
-    cmd: "dnf config-manager --set-enabled {{ item }}"
-  loop: "{{ controller_core_repo_ids_effective }}"
-  loop_control:
-    label: "{{ item }}"
-  changed_when: false
-
-# 5. Install baseline packages
+# 4. Install baseline packages
 - name: Ensure baseline packages installed
   ansible.builtin.package:
     name: "{{ common_packages }}"
     state: present
 
-# 6. Apply sysctl settings
+# 5. Apply sysctl settings
 - name: Apply sysctl defaults
   ansible.posix.sysctl:
     name: "{{ item.key }}"
@@ -96,7 +51,7 @@
     reload: yes
   loop: "{{ common_sysctl | dict2items }}"
 
-# 7. Apply PAM limits
+# 6. Apply PAM limits
 - name: Apply ulimit settings
   community.general.pam_limits:
     domain: "{{ item.domain }}"
