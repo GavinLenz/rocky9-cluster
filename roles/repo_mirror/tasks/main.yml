@@ -94,6 +94,11 @@
       ansible.builtin.command: "dnf config-manager --set-disabled {{ slurm_repo_id }}"
       changed_when: false
 
+    - name: Remove temporary upstream Slurm repo file
+      ansible.builtin.file:
+        path: "/etc/yum.repos.d/{{ slurm_repo_id }}.repo"
+        state: absent
+
     - name: Label mirror path for HTTP (SELinux)
       ansible.builtin.command: >
         semanage fcontext -a -t httpd_sys_content_t "{{ slurm_mirror_root }}/(/.*)?"

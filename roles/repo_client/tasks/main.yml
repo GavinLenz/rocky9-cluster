@@ -1,11 +1,7 @@
 ---
 - name: Determine controller repo host
   ansible.builtin.set_fact:
-    slurm_repo_host: >-
-      {{ hostvars[groups['controller'][0]].pxe_server_ip
-         | default(hostvars[groups['controller'][0]].ip)
-         | default(hostvars[groups['controller'][0]].ansible_host)
-         | default(controller_repo_host) }}
+    slurm_repo_host: "{{ network_config.server_ip }}"
 
 - name: Install local Slurm repo file
   ansible.builtin.template:
