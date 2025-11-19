@@ -26,8 +26,8 @@ pxe:
   dhcp_range_start: "{{ network_config.dhcp_range.start }}"
   dhcp_range_end: "{{ network_config.dhcp_range.end }}"
   server_ip: "{{ network_config.server_ip }}"
-  gateway: "{{ network_config.gateway | default(network_config.server_ip) }}"
-  dns: "{{ network_config.dns | default(network_config.server_ip) }}"
+  gateway: "{{ network_config.gateway | default(network_config.server_ip, true) }}"
+  dns: "{{ network_config.dns | default(network_config.server_ip, true) }}"
 
   # Install options
   install_drive: "{{ pxe_config.install.drive | default('nvme0n1') }}"
