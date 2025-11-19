@@ -3,11 +3,14 @@
 roles:
   controller:
     stack:
-      - common
+      - controller_common
+      - controller
+      - repo_mirror
       - pxe
-      - slurm
+      - scheduler
 
   compute:
     stack:
       - common
-      - slurm
+      - repo_client
+      - install_slurm

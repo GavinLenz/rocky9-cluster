@@ -8,4 +8,5 @@
     - role: controller
     - role: repo_mirror
     - role: pxe
+    - role: repo_client
     - role: scheduler
