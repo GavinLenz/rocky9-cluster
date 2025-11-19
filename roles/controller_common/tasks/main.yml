@@ -39,7 +39,11 @@
 # 4. Ensure core Rocky repos enabled
 - name: Discover defined DNF repositories
   ansible.builtin.command:
-    cmd: "grep -Rho '^\\[.*\\]' /etc/yum.repos.d"
+    argv:
+      - grep
+      - -Rho
+      - '^\[.*\]'
+      - /etc/yum.repos.d
   register: controller_repo_scan
   changed_when: false
   failed_when: controller_repo_scan.rc not in [0, 1]
