@@ -1,0 +1,13 @@
+---
+# roles/pxe/tasks/services.yml
+- name: Ensure PXE services enabled and running
+  ansible.builtin.service:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop:
+    - httpd
+    - dnsmasq
+  tags:
+    - pxe
+    - pxe_services

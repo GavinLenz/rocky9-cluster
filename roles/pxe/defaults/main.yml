@@ -1,0 +1,51 @@
+---
+# roles/pxe/defaults/main.yml
+# These are derived from the top-level inventory vars:
+pxe:
+  # General
+  vendor: "{{ pxe_config.vendor | default('rocky') }}"
+  image: "{{ pxe_config.image | default('rocky9_minimal') }}"
+
+  # Image metadata (from inventory.images)
+  iso_name: "{{ images[pxe_config.image | default('rocky9_minimal')].name | default(pxe_config.image ~ '.iso') }}"
+  iso_url: "{{ images[pxe_config.image | default('rocky9_minimal')].url | default('') }}"
+  kernel: "{{ images[pxe_config.image | default('rocky9_minimal')].kernel | default('os/images/pxeboot/vmlinuz') }}"
+  initrd: "{{ images[pxe_config.image | default('rocky9_minimal')].initrd | default('os/images/pxeboot/initrd.img') }}"
+
+  # Paths
+  http_root: "{{ pxe_config.paths.http_root }}"
+  tftp_root: "{{ pxe_config.paths.tftp_root }}"
+  iso_dir: "{{ pxe_config.paths.iso_dir }}"
+  iso_mount: "{{ pxe_config.paths.iso_mount }}"
+  iso_path: "{{ pxe_config.paths.iso_dir }}/{{ images[pxe_config.image | default('rocky9_minimal')].name | default(pxe_config.image ~ '.iso') }}"
+
+  # Networking
+  boot_interface: "{{ network_config.pxe_iface }}"
+  dhcp_subnet: "{{ network_config.subnet }}"
+  dhcp_netmask: "{{ network_config.netmask }}"
+  dhcp_range_start: "{{ network_config.dhcp_range.start }}"
+  dhcp_range_end: "{{ network_config.dhcp_range.end }}"
+  server_ip: "{{ network_config.server_ip }}"
+  gateway: "{{ network_config.gateway | default(network_config.server_ip) }}"
+  dns: "{{ network_config.dns | default(network_config.server_ip) }}"
+
+  # Install options
+  install_drive: "{{ pxe_config.install.drive | default('nvme0n1') }}"
+  timeout_ms: "{{ pxe_config.ipxe.timeout_ms | default(5000) }}"
+  default_target: "{{ pxe_config.ipxe.default_target | default('local') }}"
+  menu_items: "{{ pxe_config.ipxe.menu | default([]) }}"
+
+  # Binaries
+  uefi_src: /usr/share/ipxe/ipxe-x86_64.efi
+  uefi_name: ipxe.efi
+
+  # Login details
+  username: "{{ pxe_runtime_credentials.username | default('ansible') }}"
+  # User must make hashes
+  root_password_hash: "{{ pxe_runtime_credentials.root_password_hash }}"
+  local_user_password_hash: "{{ pxe_runtime_credentials.local_user_password_hash }}"
+
+# for firewall
+firewall_allowed_subnets:
+  - "10.0.0.0/24" # Cluster LAN
+  - "192.168.68.0/24" # Home LAN

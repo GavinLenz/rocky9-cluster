@@ -1,0 +1,14 @@
+---
+# roles/controller/tasks/static_ip.yml
+- name: Configure static IP for controller
+  ansible.builtin.template:
+    src: ifcfg.j2
+    dest: "/etc/NetworkManager/system-connections/{{ network_config.pxe_iface }}.nmconnection"
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: Reload NetworkManager to apply config
+  ansible.builtin.systemd:
+    name: NetworkManager
+    state: restarted

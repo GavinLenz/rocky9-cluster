@@ -1,0 +1,12 @@
+---
+# config/profiles.yml
+profiles:
+  common:
+    timezone: UTC
+    packages:
+      - vim-enhanced
+      - tmux
+      - git
+      - curl
+      - rsync
+    motd: Cluster automation controller

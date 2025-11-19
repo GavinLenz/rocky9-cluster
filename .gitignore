@@ -1,0 +1,114 @@
+# .gitignore — Rocky Cluster Automation Repository
+
+# Python build and cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+*.manifest
+*.spec
+.Python
+.env
+.venv/
+venv/
+pip-wheel-metadata/
+wheels/
+build/
+dist/
+.eggs/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+.project
+.pydevproject
+.settings/
+*.code-workspace
+
+# Logs and runtime output
+*.log
+logs/
+*.out
+*.err
+*.pid
+nohup.out
+
+# OS-level clutter
+*.bak
+*.tmp
+*.temp
+*.old
+
+# Ansible artifacts
+.ansible/
+*.retry
+*.facts
+*.vault
+*.tar.gz
+*.zip
+*.log
+/inventory/inventory.json
+
+# Cluster artifacts
+/mnt/pxe/
+/srv/pxe/
+/srv/tftp/
+/var/www/html/os/
+/var/www/html/repos/
+/cluster/shared/
+/cluster/data/
+/cluster/results/
+
+# Local configs and secrets
+.env
+config/*.secret.yml
+config/*.local.yml
+config/private.yml
+*.pem
+*.key
+*.crt
+*.pub
+*.id_rsa*
+*.id_ed25519*
+
+# Virtual environment / tooling
+.venv/
+.env/
+.tox/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Temporary or analysis outputs
+tmp/
+scratch/
+sandbox/
+*.dat
+*.csv
+
+# Archive and image artifacts
+*.tar
+*.gz
+*.bz2
+*.xz
+*.zip
+*.img
+*.iso
+*.qcow2
+
+# System-specific
+.cache/
+.local/
+.bash_history
+.history
+
+# for me
+_docs/
+_*.md

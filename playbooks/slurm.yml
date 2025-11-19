@@ -1,0 +1,13 @@
+---
+- name: Build and publish Slurm mirror on controller
+  hosts: controller
+  become: true
+  roles:
+    - repo_mirror       # build/mirror/publish Slurm repo
+
+- name: Install Slurm from local mirror
+  hosts: compute
+  become: true
+  roles:
+    - repo_client       # distribute pinned Slurm repo file to all nodes
+    - slurm_install     # install Slurm from the pinned repo

@@ -1,0 +1,113 @@
+---
+- name: Mirror Slurm repository on controller
+  when: inventory_hostname in groups['controller']
+  block:
+    - name: Install repo mirror dependencies
+      ansible.builtin.package:
+        name:
+          - yum-utils
+          - createrepo_c
+          - policycoreutils-python-utils
+        state: present
+
+    - name: Ensure mirror and publish directories exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - "{{ slurm_mirror_root }}"
+        - "{{ slurm_publish_root | dirname }}"
+
+    - name: Render temporary Slurm upstream repo file (disabled by default)
+      ansible.builtin.template:
+        src: slurm-upstream.repo.j2
+        dest: "/etc/yum.repos.d/{{ slurm_repo_id }}.repo"
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Sync Slurm repo from upstream
+      ansible.builtin.command:
+        cmd: >
+          reposync
+          -p {{ slurm_mirror_root }}
+          --repoid={{ slurm_repo_id }}
+          {% if slurm_reposync_newest_only | bool -%}
+          --newest-only
+          {%- endif %}
+          {% if slurm_reposync_delete | bool -%}
+          --delete
+          {%- endif %}
+          --download-metadata
+          --downloadcomps
+          --enablerepo={{ slurm_repo_id }}
+      environment:
+        reposdir: "/etc/yum.repos.d"
+      register: sync_result
+      changed_when: >
+        'Downloading' in sync_result.stdout
+        or 'Removing' in sync_result.stdout
+        or 'Updating' in sync_result.stdout
+
+    - name: Check repodata existence
+      ansible.builtin.stat:
+        path: "{{ slurm_mirror_root }}/{{ slurm_repo_id }}/repodata/repomd.xml"
+      register: repodata_stat
+
+    - name: Rebuild repository metadata when needed
+      ansible.builtin.command:
+        cmd: >
+          createrepo_c --update {{ slurm_mirror_root }}/{{ slurm_repo_id }}
+      when:
+        - sync_result is changed or not repodata_stat.stat.exists
+
+    - name: Publish repo over HTTP
+      ansible.builtin.file:
+        src: "{{ slurm_mirror_root }}/{{ slurm_repo_id }}"
+        dest: "{{ slurm_publish_root }}"
+        state: link
+        force: true
+
+    - name: Ensure httpd package present for repo mirror
+      ansible.builtin.package:
+        name: httpd
+        state: present
+
+    - name: Ensure HTTP service running for repo mirror
+      ansible.builtin.service:
+        name: httpd
+        state: started
+        enabled: true
+
+    - name: Mirror upstream GPG key for clients
+      ansible.builtin.copy:
+        src: "{{ slurm_mirror.gpgkey_url }}"
+        dest: "{{ slurm_publish_root }}/GPG-KEY-SLURM"
+        owner: root
+        group: root
+        mode: '0644'
+        remote_src: true
+      when: slurm_repo_gpgcheck | bool
+
+    - name: Disable temporary upstream Slurm repo
+      ansible.builtin.command: "dnf config-manager --set-disabled {{ slurm_repo_id }}"
+      changed_when: false
+
+    - name: Label mirror path for HTTP (SELinux)
+      ansible.builtin.command: >
+        semanage fcontext -a -t httpd_sys_content_t "{{ slurm_mirror_root }}/(/.*)?"
+      register: sefcontext_cmd
+      # semanage returns 1 when the rule already exists (stderr: “already defined”)
+      changed_when: sefcontext_cmd.rc == 0
+      failed_when: sefcontext_cmd.rc not in [0, 1]
+      when:
+        - ansible_selinux is defined
+        - ansible_selinux.status == "enabled"
+
+    - name: Apply SELinux context to mirror path
+      ansible.builtin.command: "restorecon -ir {{ slurm_mirror_root }}"
+      changed_when: false
+      when:
+        - ansible_selinux is defined
+        - ansible_selinux.status == "enabled"

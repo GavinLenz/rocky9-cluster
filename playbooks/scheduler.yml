@@ -1,0 +1,8 @@
+---
+# playbooks/slurm.yml
+- name: Configure Slurm cluster
+  hosts: all
+  become: yes
+  roles:
+    - role: scheduler
+      tags: scheduler

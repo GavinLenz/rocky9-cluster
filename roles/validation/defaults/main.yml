@@ -1,0 +1,21 @@
+---
+# roles/validation/defaults/main.yml
+validation_pavilion:
+  enabled: true
+
+  # Where Pavilion2 source will be installed (git clone).
+  install_dir: /opt/pavilion2
+
+  # Config dir that Pavilion will use. We’ll copy your repo configs here.
+  config_dir: /opt/pavilion2/config
+
+  # Working dir for Pavilion runs (results, logs).
+  work_dir: /opt/pavilion2/work
+
+  # Pavilion git repo (LANL public).
+  repo_url: "https://github.com/lanl/Pavilion2.git"
+  repo_version: "main"
+
+  # Slurm default partition/account used by tests.
+  slurm_partition: "debug"
+  slurm_account: ""

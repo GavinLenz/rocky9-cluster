@@ -1,0 +1,53 @@
+---
+# roles/validation/tasks/pavilion_install.yml
+- name: Ensure Pavilion OS dependencies are present
+  ansible.builtin.package:
+    name: # should already be present
+      - git
+      - python3
+      - python3-pip
+      - python3-virtualenv
+    state: present
+
+- name: Create Pavilion install parent dir
+  ansible.builtin.file:
+    path: "{{ validation_pavilion.install_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Clone Pavilion2 repository
+  ansible.builtin.git:
+    repo: "{{ validation_pavilion.repo_url }}"
+    dest: "{{ validation_pavilion.install_dir }}"
+    version: "{{ validation_pavilion.repo_version }}"
+    update: yes
+
+- name: Ensure Pavilion working directory exists
+  ansible.builtin.file:
+    path: "{{ validation_pavilion.work_dir }}"
+    state: directory
+    mode: "0775"
+
+- name: Ensure Pavilion virtualenv exists
+  ansible.builtin.command: python3 -m venv venv
+  args:
+    chdir: "{{ validation_pavilion.install_dir }}"
+    creates: "{{ validation_pavilion.install_dir }}/venv/bin/activate"
+
+- name: Upgrade pip tooling inside Pavilion virtualenv
+  ansible.builtin.pip: # todo: figure out how to import dyanamic list so I dont need to hard code
+    name:
+      - pip==24.0
+      - setuptools==69.0.3
+      - wheel==0.42.0
+    state: present # todo: 'latest' throws an error so this is current solution
+    virtualenv: "{{ validation_pavilion.install_dir }}/venv"
+    virtualenv_command: python3 -m venv
+
+- name: Install Pavilion Python dependencies
+  ansible.builtin.pip:
+    requirements: requirements.txt
+    virtualenv: "{{ validation_pavilion.install_dir }}/venv"
+    virtualenv_command: python3 -m venv
+  args:
+    chdir: "{{ validation_pavilion.install_dir }}"

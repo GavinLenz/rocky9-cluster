@@ -1,0 +1,24 @@
+---
+# roles/controller/tasks/main.yml
+- name: Controller
+  block:
+    # - import_tasks: venv.yml ; using dev venv for now for testing
+    #   tags:
+    #     - venv
+    #     - controller
+    - import_tasks: hostname.yml
+      tags:
+        - hostname
+        - controller
+    - import_tasks: static_ip.yml
+      tags:
+        - static_ip
+        - controller
+    - import_tasks: repo.yml
+      tags:
+        - repo
+        - controller
+    - import_tasks: validate.yml
+      tags:
+        - validate
+        - controller

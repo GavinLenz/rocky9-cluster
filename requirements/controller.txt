@@ -1,0 +1,8 @@
+ansible-core==2.15.8
+PyYAML>=6.0
+rich>=13.0
+passlib>=1.7.4
+python-dotenv>=0.21
+setuptools<81
+mpi4py
+netaddr

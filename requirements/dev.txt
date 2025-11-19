@@ -1,0 +1,14 @@
+ansible-core==2.15.8
+ansible-lint
+yamllint
+black
+ruff
+isort
+passlib
+rich
+PyYAML
+python-dotenv
+pre-commit
+setuptools<81
+mpi4py
+netaddr

@@ -1,0 +1,11 @@
+---
+# Defaults can be overridden via config/slurm.yml (slurm_mirror.*) or inventory/group vars
+slurm_repo_url: "{{ slurm_mirror.url | default('https://download.schedmd.com/slurm/rocky9/') }}"
+slurm_repo_id: "{{ slurm_mirror.repoid | default('slurm-upstream') }}"
+slurm_repo_name: "{{ slurm_mirror.name | default('SchedMD Slurm upstream') }}"
+slurm_repo_gpgcheck: "{{ slurm_mirror.gpgcheck | default(0) }}"
+slurm_repo_gpgkey_url: "{{ slurm_mirror.gpgkey_url | default('') }}"
+slurm_mirror_root: "{{ slurm_mirror.mirror_root | default('/srv/repos/slurm') }}"
+slurm_publish_root: "{{ slurm_mirror.publish_root | default('/var/www/html/slurm') }}"
+slurm_reposync_newest_only: "{{ slurm_mirror.newest_only | default(true) }}"
+slurm_reposync_delete: "{{ slurm_mirror.delete | default(true) }}"

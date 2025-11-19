@@ -1,0 +1,44 @@
+---
+# # roles/validation/pavilion/suites/basic_smoke.yml
+network_ping:
+  summary: "Network smoke: ping controller from compute nodes"
+  scheduler: slurm
+  schedule:
+    nodes: 1
+    tasks_per_node: 1
+  run:
+    cmds:
+      - |
+        set -eu
+        ping -c 4 {{ network_config.server_ip }}
+  result_parse:
+    regex:
+      regex: '(\d+) packets transmitted, (\d+) received'
+      matches: one
+  result_evaluate:
+    ok:
+      formula: "int(result.regex._2) >= 1"
+      result: "PASS"
+      fail_result: "FAIL"
+
+slurm_basic:
+  summary: "Slurm smoke: verify job runs under sbatch"
+  scheduler: slurm
+  slurm:
+    sbatch: true
+    time: "00:01:00"
+    nodes: 1
+  run:
+    cmds:
+      - |
+        echo "slurm_ok" > out.txt
+        echo "SLURM_OK=1"
+  result_parse:
+    regex:
+      regex: '^SLURM_OK=(?P<value>\d+)$'
+      matches: one
+  result_evaluate:
+    ok:
+      formula: "result.regex.value == '1'"
+      result: "PASS"
+      fail_result: "FAIL"

@@ -1,0 +1,27 @@
+---
+# roles/validation/tasks/pavilion_config.yml
+- name: Create Pavilion config directory
+  ansible.builtin.file:
+    path: "{{ validation_pavilion.config_dir }}"
+    state: directory
+    mode: "0775"
+    recurse: yes
+
+- name: Deploy pavilion.yaml (top-level Pavilion config)
+  ansible.builtin.template:
+    src: pavilion.yaml.j2
+    dest: "{{ validation_pavilion.config_dir }}/pavilion.yaml"
+    mode: "0644"
+
+- name: Copy Pavilion suites ... # TODO: need to implement
+  ansible.builtin.copy:
+    dest: "{{ validation_pavilion.config_dir }}/{{ item.dest }}"
+    content: "{{ lookup('template', role_path ~ '/' ~ item.src) }}"
+    mode: "0644"
+  loop:
+    - { src: "pavilion/suites/hpc_smoke.yml",
+        dest: "suites/hpc_smoke.yml" }
+    - { src: "pavilion/suites/basic_smoke.yml",
+        dest: "suites/basic_smoke.yml" }
+    - { src: "pavilion/hosts/cluster.yml",
+        dest: "hosts/cluster.yml" }

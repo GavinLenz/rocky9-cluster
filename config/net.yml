@@ -1,0 +1,13 @@
+---
+# config/net.yml
+network:
+  pxe_iface: enp5s0
+  server_ip: 10.0.0.1
+  subnet: 10.0.0.0/24
+  netmask: 255.255.255.0
+  gateway: null
+  dns: 8.8.8.8
+  dhcp_range:
+    start: 10.0.0.10
+    end: 10.0.0.15
+  mtu: 1500

@@ -1,0 +1,11 @@
+[connection]
+id={{ network_config.pxe_iface }}
+type=ethernet
+interface-name={{ network_config.pxe_iface }}
+autoconnect=true
+
+[ipv4]
+method=manual
+address1={{ network_config.server_ip }}/{{ network_config.netmask | default('255.255.255.0') | ansible.utils.ipaddr('prefix') }},{{ network_config.gateway }}
+dns={{ network_config.dns }}
+may-fail=false

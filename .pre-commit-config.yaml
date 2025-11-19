@@ -1,0 +1,33 @@
+---
+repos:
+  - repo: local
+    hooks:
+      - id: black
+        name: black
+        entry: black
+        language: system
+        types: [python]
+        args: ["--line-length", "100"]
+      - id: ruff
+        name: ruff
+        entry: ruff
+        language: system
+        types: [python]
+        args: ["check", "--fix"]
+      - id: isort
+        name: isort
+        entry: isort
+        language: system
+        types: [python]
+        args: ["--profile", "black", "--line-length", "100"]
+      - id: yamllint
+        name: yamllint
+        entry: yamllint
+        language: system
+        types: [yaml]
+      - id: ansible-lint
+        name: ansible-lint
+        entry: ansible-lint
+        language: system
+        types: [yaml]
+        args: ["--config", ".ansible-lint.yml"]

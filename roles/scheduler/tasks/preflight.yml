@@ -1,0 +1,72 @@
+---
+# roles/scheduler/tasks/preflight.yml
+- name: Ensure Slurm dependencies installed
+  ansible.builtin.package:
+    name:
+      - slurm
+      - slurm-slurmd
+      - slurm-slurmctld
+      - slurm-slurmdbd
+      - munge
+    state: present
+
+- name: Ensure slurm group exists
+  ansible.builtin.group:
+    name: "{{ slurm.group }}"
+    system: true
+
+- name: Ensure slurm user exists
+  ansible.builtin.user:
+    name: "{{ slurm.user }}"
+    group: "{{ slurm.group }}"
+    system: true
+    shell: /sbin/nologin
+    create_home: false
+
+- name: Ensure munge directories exist
+  ansible.builtin.file:
+    path: /etc/munge
+    state: directory
+    owner: munge
+    group: munge
+    mode: '0700'
+
+- name: Seed munge key from provided source
+  ansible.builtin.copy:
+    src: "{{ slurm.munge_key_src }}"
+    dest: /etc/munge/munge.key
+    owner: munge
+    group: munge
+    mode: '0400'
+  when:
+    - inventory_hostname == slurm.controller_host
+    - slurm.munge_key_src | length > 0
+
+- name: Generate munge key on controller when no seed provided
+  ansible.builtin.command: /usr/sbin/create-munge-key
+  args:
+    creates: /etc/munge/munge.key
+  when:
+    - inventory_hostname == slurm.controller_host
+    - slurm.munge_key_src | length == 0
+
+- name: Slurp munge key from controller
+  ansible.builtin.slurp:
+    src: /etc/munge/munge.key
+  delegate_to: "{{ slurm.controller_host }}"
+  run_once: true
+  register: controller_munge_key
+
+- name: Distribute munge key to all nodes
+  ansible.builtin.copy:
+    content: "{{ controller_munge_key.content | b64decode }}"
+    dest: /etc/munge/munge.key
+    owner: munge
+    group: munge
+    mode: '0400'
+
+- name: Ensure munge service active
+  ansible.builtin.service:
+    name: munge
+    state: started
+    enabled: true

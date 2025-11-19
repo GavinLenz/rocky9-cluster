@@ -1,0 +1,66 @@
+---
+# roles/controller_common/tasks/main.yml
+
+# 0. Create required groups FIRST
+- name: Ensure cluster groups exist
+  ansible.builtin.group:
+    name: "{{ item.name }}"
+    state: present
+    system: "{{ item.system | default(true) }}"
+  loop: "{{ common_groups }}"
+
+# 1. Create cluster users
+- name: Create cluster users
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    groups: "{{ item.groups | default([]) }}"
+    shell: "{{ item.shell | default('/bin/bash') }}"
+    state: present
+  loop: "{{ common_users }}"
+
+# 2. Allow passwordless sudo for automation user
+- name: Allow passwordless sudo for automation user
+  ansible.builtin.copy:
+    dest: /etc/sudoers.d/99-ansible-nopasswd
+    content: "ansible ALL=(ALL) NOPASSWD:ALL\n"
+    owner: root
+    group: root
+    mode: '0440'
+
+# 3. Install authorized SSH keys
+- name: Install authorized SSH keys
+  ansible.posix.authorized_key:
+    user: "{{ item.name }}"
+    key: "{{ item.authorized_key }}"
+    state: present
+  loop: "{{ common_users | selectattr('authorized_key','defined') }}"
+  when: item.authorized_key | length > 0
+
+# 4. Ensure core Rocky repos enabled
+- name: Ensure BaseOS/AppStream repos enabled
+  ansible.builtin.command: dnf config-manager --set-enabled baseos appstream
+  changed_when: false
+
+# 5. Install baseline packages
+- name: Ensure baseline packages installed
+  ansible.builtin.package:
+    name: "{{ common_packages }}"
+    state: present
+
+# 6. Apply sysctl settings
+- name: Apply sysctl defaults
+  ansible.posix.sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: yes
+  loop: "{{ common_sysctl | dict2items }}"
+
+# 7. Apply PAM limits
+- name: Apply ulimit settings
+  community.general.pam_limits:
+    domain: "{{ item.domain }}"
+    limit_type: "{{ item.type }}"
+    limit_item: "{{ item.item }}"
+    value: "{{ item.value }}"
+  loop: "{{ common_limits }}"

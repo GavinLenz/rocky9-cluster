@@ -1,0 +1,82 @@
+---
+# roles/pxe/tasks/deploy_configs.yml
+- name: Remove legacy dnsmasq PXE config (interface/bind leftovers)
+  ansible.builtin.file:
+    path: /etc/dnsmasq.d/pxe.conf
+    state: absent
+  tags:
+    - pxe
+    - pxe_configs
+
+- name: Deploy PXE config
+  ansible.builtin.template:
+    src: pxe.conf.j2
+    dest: /etc/dnsmasq.d/pxe.conf
+    owner: root
+    group: root
+    mode: '0644'
+    force: true
+  notify: restart dnsmasq
+  tags:
+    - pxe
+    - pxe_configs
+
+- name: Deploy iPXE boot script to TFTP root
+  ansible.builtin.template:
+    src: boot.ipxe.j2
+    dest: "{{ pxe.tftp_root }}/boot.ipxe"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart dnsmasq
+  tags:
+    - pxe
+    - pxe_configs
+
+- name: Deploy iPXE boot script to HTTP root (for http:// chainload)
+  ansible.builtin.template:
+    src: boot.ipxe.j2
+    dest: "{{ pxe.http_root }}/boot.ipxe"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart httpd
+  tags:
+    - pxe
+    - pxe_configs
+
+- name: Deploy Kickstart configuration
+  ansible.builtin.template:
+    src: ks.cfg.j2
+    dest: "{{ pxe.http_root }}/ks.cfg"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart httpd
+  tags:
+    - pxe
+    - pxe_configs
+
+- name: Ensure /etc/sysconfig/dnsmasq has no interface overrides
+  ansible.builtin.copy:
+    dest: /etc/sysconfig/dnsmasq
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      # Managed by Ansible PXE role
+      DNSMASQ_OPTS=""
+  notify: restart dnsmasq
+  tags:
+    - pxe
+    - pxe_configs
+
+- name: Validate dnsmasq configuration syntax
+  ansible.builtin.command: dnsmasq --test --conf-file=/etc/dnsmasq.conf --conf-dir=/etc/dnsmasq.d
+  register: dnsmasq_test
+  changed_when: false
+  failed_when: dnsmasq_test.rc != 0
+  tags:
+    - pxe
+    - pxe_configs
+    - pxe_services

@@ -1,0 +1,47 @@
+---
+# config/nodes.yml
+nodes:
+  head:
+    role: controller
+    ip: 10.0.0.1
+    mac: "84:a9:38:64:9e:bc"
+    iface: enp5s0
+    connection:
+      ansible_connection: local
+      ansible_host: localhost
+      ansible_python_interpreter: /usr/bin/python3
+    variables:
+      ansible_become: true
+      ansible_become_method: sudo
+      ansible_become_user: root
+      ansible_become_password: "your_sudo_password"
+
+  node01:
+    role: compute
+    ip: 10.0.0.11
+    mac:
+      - "84:47:09:4d:5b:d6"
+    connection:
+      ansible_connection: ssh
+      ansible_user: ansible
+      ansible_python_interpreter: /usr/bin/python3
+
+  node02:
+    role: compute
+    ip: 10.0.0.12
+    mac:
+      - "84:47:09:4d:57:37"
+    connection:
+      ansible_connection: ssh
+      ansible_user: ansible
+      ansible_python_interpreter: /usr/bin/python3
+
+  node03:
+    role: compute
+    ip: 10.0.0.13
+    mac:
+      - "84:47:09:4d:51:76"
+    connection:
+      ansible_connection: ssh
+      ansible_user: ansible
+      ansible_python_interpreter: /usr/bin/python3

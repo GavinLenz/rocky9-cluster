@@ -1,0 +1,23 @@
+---
+# roles/scheduler/tasks/compute.yml
+- name: Copy slurm.conf from controller
+  ansible.builtin.template:
+    src: slurm.conf.j2
+    dest: "{{ slurm.slurm_conf_path }}"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart slurmd
+- name: Ensure slurmd directories exist
+  ansible.builtin.file:
+    path: "{{ slurm.slurmd_spool_dir }}"
+    state: directory
+    owner: slurm
+    group: slurm
+    mode: '0755'
+
+- name: Enable and start slurmd
+  ansible.builtin.service:
+    name: slurmd
+    state: started
+    enabled: true

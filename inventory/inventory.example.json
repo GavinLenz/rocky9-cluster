@@ -1,0 +1,185 @@
+{
+  "all": {
+    "children": {
+      "controller": {
+        "hosts": {
+          "head": {
+            "ansible_host": "localhost",
+            "ansible_connection": "local",
+            "ansible_python_interpreter": "/usr/bin/python3",
+            "cluster_role": "controller",
+            "pxe_iface": "enp5s0",
+            "pxe_server_ip": "10.0.0.1",
+            "pxe_install_drive": "nvme0n1",
+            "pxe_default_target": "local",
+            "pxe_ipxe_menu_items": [
+              {
+                "key": "i",
+                "label": "Fresh install",
+                "target": "fresh"
+              },
+              {
+                "key": "l",
+                "label": "Boot from NVMe",
+                "target": "local"
+              }
+            ],
+            "ansible_become": true,
+            "ansible_become_method": "sudo",
+            "ansible_become_user": "root"
+          }
+        }
+      },
+      "compute": {
+        "hosts": {
+          "node01": {
+            "ansible_host": "10.0.0.11",
+            "ansible_connection": "ssh",
+            "ansible_user": "ansible",
+            "ansible_python_interpreter": "/usr/bin/python3",
+            "cluster_role": "compute",
+            "pxe_mac": [
+              "84:47:09:4d:5b:d6"
+            ]
+          },
+          "node02": {
+            "ansible_host": "10.0.0.12",
+            "ansible_connection": "ssh",
+            "ansible_user": "ansible",
+            "ansible_python_interpreter": "/usr/bin/python3",
+            "cluster_role": "compute",
+            "pxe_mac": [
+              "84:47:09:4d:57:37"
+            ]
+          },
+          "node03": {
+            "ansible_host": "10.0.0.13",
+            "ansible_connection": "ssh",
+            "ansible_user": "ansible",
+            "ansible_python_interpreter": "/usr/bin/python3",
+            "cluster_role": "compute",
+            "pxe_mac": [
+              "84:47:09:4d:51:76"
+            ]
+          }
+        }
+      }
+    },
+    "vars": {
+      "cluster_name": "cluster",
+      "cluster_description": "",
+      "cluster_repo_root": "/root/work/rocky-cluster",
+      "cluster_config_root": "/root/work/rocky-cluster/config",
+      "cluster_meta_root": "/root/work/rocky-cluster/meta",
+      "cluster_profiles": {
+        "profiles": {
+          "common": {
+            "timezone": "UTC",
+            "packages": [
+              "vim-enhanced",
+              "tmux",
+              "git",
+              "curl",
+              "rsync"
+            ],
+            "motd": "Cluster automation controller"
+          }
+        }
+      },
+      "cluster_roles": {
+        "controller": {
+          "stack": [
+            "common",
+            "pxe",
+            "slurm"
+          ]
+        },
+        "compute": {
+          "stack": [
+            "common",
+            "slurm"
+          ]
+        }
+      },
+      "network_config": {
+        "pxe_iface": "enp5s0",
+        "server_ip": "10.0.0.1",
+        "subnet": "10.0.0.0/24",
+        "netmask": "255.255.255.0",
+        "gateway": "10.0.0.1",
+        "dns": "8.8.8.8",
+        "dhcp_range": {
+          "start": "10.0.0.10",
+          "end": "10.0.0.15"
+        },
+        "mtu": 1500
+      },
+      "pxe_config": {
+        "username": "ansible",
+        "vendor": "rocky",
+        "image": "rocky9_minimal",
+        "install": {
+          "drive": "nvme0n1",
+          "disable_interfaces": []
+        },
+        "paths": {
+          "iso_dir": "/srv/pxe/iso",
+          "iso_mount": "/var/www/html/os",
+          "http_root": "/var/www/html",
+          "tftp_root": "/srv/tftp"
+        },
+        "packages": {
+          "base": [
+            "dnsmasq",
+            "tftp-server",
+            "httpd",
+            "ipxe-bootimgs",
+            "rsync",
+            "python3-libselinux",
+            "policycoreutils-python-utils"
+          ],
+          "efi": []
+        },
+        "ipxe": {
+          "default_target": "local",
+          "timeout_ms": 5000,
+          "menu": [
+            {
+              "key": "i",
+              "label": "Fresh install",
+              "target": "fresh"
+            },
+            {
+              "key": "l",
+              "label": "Boot from NVMe",
+              "target": "local"
+            }
+          ]
+        },
+        "role_packages": {
+          "controller": [
+            "@^minimal-environment"
+          ],
+          "compute": [
+            "@^minimal-environment"
+          ]
+        }
+      },
+      "images": {
+        "rocky9_minimal": {
+          "name": "Rocky-9.6-x86_64-minimal.iso",
+          "url": "https://download.rockylinux.org/pub/rocky/9/isos/x86_64/Rocky-9.6-x86_64-minimal.iso",
+          "kernel": "os/images/pxeboot/vmlinuz",
+          "initrd": "os/images/pxeboot/initrd.img",
+          "vendor": "rocky",
+          "description": "Rocky Linux 9 minimal image."
+        }
+      },
+      "pxe_runtime_credentials": {
+        "username": "ansible",
+        "root_password_hash": "$6$rounds=656000$rwYmyVEKZzCSOelR$cltA77Zgjkf.J5swy/1XvcW5REooCMXP7H6NtOXCcR7dXkYVuZIS.4w72jGS5KQSQW4yvWusYtSE7U24zz4fQ1",
+        "local_user_password_hash": "$6$rounds=656000$rwYmyVEKZzCSOelR$cltA77Zgjkf.J5swy/1XvcW5REooCMXP7H6NtOXCcR7dXkYVuZIS.4w72jGS5KQSQW4yvWusYtSE7U24zz4fQ1"
+      }
+    }
+  }
+}

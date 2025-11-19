@@ -1,0 +1,17 @@
+---
+# roles/validation/tasks/pavilion_run.yml
+- name: Run Pavilion HPC smoke suite
+  ansible.builtin.command:
+    cmd: >
+      {{ validation_pavilion.install_dir }}/venv/bin/pav
+      --config "{{ validation_pavilion.config_dir }}"
+      -H cluster
+      run hpc_smoke.*
+  args:
+    chdir: "{{ validation_pavilion.install_dir }}"
+  register: pavilion_run_result
+  changed_when: false
+
+- name: Show Pavilion run summary
+  ansible.builtin.debug:
+    var: pavilion_run_result.stdout

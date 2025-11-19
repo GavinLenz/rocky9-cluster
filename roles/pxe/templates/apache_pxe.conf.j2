@@ -1,0 +1,9 @@
+# roles/pxe/templates/apache_pxe.conf.j2
+# Hardened template for apache
+Alias /os "{{ pxe.http_root }}/os"
+
+<Directory "{{ pxe.http_root }}/os">
+    Options +Indexes
+    AllowOverride None
+    Require all granted
+</Directory>

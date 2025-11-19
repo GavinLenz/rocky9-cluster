@@ -1,0 +1,29 @@
+---
+extends: default
+
+ignore: |
+  .git
+  .venv
+  .cache
+  .github/workflows
+
+rules:
+  indentation: disable
+  braces:
+    max-spaces-inside: 1
+  line-length:
+    max: 100
+    level: warning
+  comments:
+    min-spaces-from-content: 1
+  comments-indentation: false
+  truthy:
+    allowed-values: ['true', 'false', 'on', 'off', 'yes', 'no']
+    check-keys: false
+  document-start:
+    level: warning
+  new-line-at-end-of-file:
+    level: warning
+  octal-values:
+    forbid-implicit-octal: true
+    forbid-explicit-octal: true

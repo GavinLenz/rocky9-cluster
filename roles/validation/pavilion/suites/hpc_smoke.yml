@@ -1,0 +1,35 @@
+---
+# roles/validation/pavilion/suites/hpc_smoke.yml
+slurm_smoke:
+  summary: "Slurm smoke: hostname fanout over nodes"
+  doc: >
+    Minimal Slurm validation: run hostname under srun and verify that at least
+    one non-controller host responds. Intended as a quick sanity check that
+    jobs leave the controller and reach compute nodes.
+
+  scheduler: slurm
+
+  schedule:
+    nodes: 2
+    tasks_per_node: 1
+
+  run:
+    # Run a trivial command that prints hostnames, then deduplicate.
+    cmds:
+      - |
+        set -eu
+        echo "Slurm smoke test starting on $(hostname -s)"
+        srun -l hostname -s | sort -u
+
+  result_parse:
+    regex:
+      # Capture each line that looks like 'N: hostname'
+      regex: '^\s*\d+\s*:\s*(?P<host>\S+)$'
+      matches: many
+
+  result_evaluate:
+    # Require that we saw at least 2 distinct hosts.
+    min_hosts:
+      formula: "len(result.regex.host) >= 2"
+      result: "PASS"
+      fail_result: "FAIL"

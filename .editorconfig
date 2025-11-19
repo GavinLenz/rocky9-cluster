@@ -1,0 +1,34 @@
+# .editorconfig
+# This file is deliberately minimal and safe for an Ansible/Kickstart/cluster repo.
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# Python files: industry standard 4-space indentation
+[*.py]
+indent_size = 4
+max_line_length = 100
+
+# YAML/Ansible/Jinja: standard 2-space indentation
+[*.yaml]
+indent_size = 2
+[*.yml]
+indent_size = 2
+[*.j2]
+indent_size = 2
+
+# Shell scripts: 2-space indent, but no forced line length
+[*.sh]
+indent_size = 2
+
+# Markdown: do not trim trailing whitespace (used for formatting)
+[*.md]
+trim_trailing_whitespace = false
+indent_size = 2

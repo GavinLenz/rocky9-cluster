@@ -1,0 +1,79 @@
+---
+# roles/pxe/tasks/validate.yml
+- name: Validate PXE environment readiness
+  block:
+
+    - name: Assert PXE directories exist
+      ansible.builtin.assert:
+        that:
+          - pxe.tftp_root is defined
+          - pxe.http_root is defined
+          - pxe.iso_mount is defined
+        fail_msg: "PXE directory variables are undefined."
+        success_msg: "PXE directory paths are defined."
+
+    - name: Check that PXE directories exist on disk
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      loop:
+        - "{{ pxe.tftp_root }}"
+        - "{{ pxe.http_root }}"
+        - "{{ pxe.iso_mount }}"
+      register: pxe_dirs
+
+    - name: Validate PXE directories presence
+      ansible.builtin.assert:
+        that:
+          - pxe_dirs.results | map(attribute='stat.exists') | min
+        fail_msg: "One or more PXE directories missing (TFTP/HTTP/ISO mount)."
+        success_msg: "All PXE directories present."
+
+    - name: Verify iPXE binary staged correctly
+      ansible.builtin.stat:
+        path: "{{ pxe.tftp_root }}/{{ pxe.uefi_name }}"
+      register: ipxe_bin
+
+    - name: Assert iPXE binary presence
+      ansible.builtin.assert:
+        that:
+          - ipxe_bin.stat.exists
+          - ipxe_bin.stat.size > 100000 # real ipxe.efi is 750-800KB
+        fail_msg: "Missing or empty iPXE binary in {{ pxe.tftp_root }}."
+        success_msg: "iPXE binary present."
+
+    - name: Verify ISO mount contents
+      ansible.builtin.stat:
+        path: "{{ pxe.iso_mount }}/images/pxeboot/vmlinuz"
+      register: iso_kernel
+
+    - name: Assert ISO is properly mounted
+      ansible.builtin.assert:
+        that:
+          - iso_kernel.stat.exists
+        fail_msg: "ISO not mounted or invalid. Check {{ pxe.iso_mount }}."
+        success_msg: "ISO mount valid and kernel accessible."
+
+    - name: Validate dnsmasq PXE config presence
+      ansible.builtin.stat:
+        path: /etc/dnsmasq.d/pxe.conf
+      register: dnsmasq_cfg
+
+    - name: Assert PXE config deployed
+      ansible.builtin.assert:
+        that:
+          - dnsmasq_cfg.stat.exists
+          - dnsmasq_cfg.stat.size > 200
+        fail_msg: "Missing or incomplete PXE configuration in /etc/dnsmasq.d/pxe.conf."
+        success_msg: "PXE configuration file exists."
+
+    - name: Check PXE services running
+      ansible.builtin.service_facts:
+
+    - name: Assert core PXE services active
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.services.get('dnsmasq.service', {}).get('state') == 'running'
+          - ansible_facts.services.get('httpd.service', {}).get('state') == 'running'
+          - ansible_facts.services.get('firewalld.service', {}).get('state') == 'running'
+        fail_msg: "PXE core services are not active. Verify dnsmasq, httpd, and firewalld."
+        success_msg: "PXE services running as expected."

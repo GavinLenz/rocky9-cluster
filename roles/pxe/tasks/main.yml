@@ -1,0 +1,36 @@
+---
+# roles/pxe/tasks/main.yml
+- name: PXE
+  block:
+    - import_tasks: preflight.yml
+      tags:
+        - pxe
+        - pxe_preflight
+    - import_tasks: firewall.yml
+      tags:
+        - pxe
+        - pxe_firewall
+    - import_tasks: httpd.yml
+      tags:
+        - pxe
+        - httpd
+    - import_tasks: iso.yml
+      tags:
+        - pxe
+        - pxe_iso
+    - import_tasks: binaries.yml
+      tags:
+        - pxe
+        - pxe_binaries
+    - import_tasks: deploy_configs.yml
+      tags:
+        - pxe
+        - pxe_configs
+    - import_tasks: services.yml
+      tags:
+        - pxe
+        - pxe_services
+    - import_tasks: validate.yml
+      tags:
+        - pxe
+        - pxe_validate

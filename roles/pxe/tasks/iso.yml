@@ -1,0 +1,15 @@
+---
+# roles/pxe/tasks/iso.yml
+- name: Ensure ISO present
+  ansible.builtin.get_url:
+    url: "{{ pxe.iso_url }}"
+    dest: "{{ pxe.iso_path }}"
+    mode: "0644"
+
+- name: Mount ISO
+  ansible.posix.mount:
+    path: "{{ pxe.iso_mount }}"
+    src: "{{ pxe.iso_path }}"
+    fstype: iso9660
+    opts: ro,loop
+    state: mounted

@@ -1,0 +1,10 @@
+---
+# config/images.yml
+images:
+  rocky9_minimal:
+    name: Rocky-9.6-x86_64-minimal.iso
+    url: https://download.rockylinux.org/pub/rocky/9/isos/x86_64/Rocky-9.6-x86_64-minimal.iso
+    kernel: os/images/pxeboot/vmlinuz
+    initrd: os/images/pxeboot/initrd.img
+    vendor: rocky
+    description: Rocky Linux 9 minimal image.

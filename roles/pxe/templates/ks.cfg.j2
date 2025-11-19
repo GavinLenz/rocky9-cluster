@@ -1,0 +1,35 @@
+# roles/pxe/templates/ks.cfg.j2
+
+#version=RHEL9
+text
+lang en_US.UTF-8
+keyboard us
+timezone UTC --utc
+
+rootpw --iscrypted {{ pxe.root_password_hash }}
+user --name={{ pxe.username }} --groups=wheel --iscrypted --password={{ pxe.local_user_password_hash | default(pxe.root_password_hash) }}
+reboot
+
+url --url "http://{{ pxe.server_ip }}/os"
+network --bootproto=dhcp
+
+firewall --enabled --service=ssh
+selinux --enforcing
+
+bootloader --location=mbr --boot-drive={{ pxe.install_drive | default('nvme0n1') }}
+clearpart --all --initlabel
+autopart --type=lvm
+
+repo --name="slurm-local" --baseurl=http://{{ pxe.server_ip }}/slurm
+
+%packages
+@^minimal-environment
+%end
+
+%post
+# Enable passwordless sudo for the PXE-created user
+echo "{{ pxe.username | default('ansible') }} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/99-{{ pxe.username | default('ansible') }}-nopasswd
+chmod 0440 /etc/sudoers.d/99-{{ pxe.username | default('ansible') }}-nopasswd
+
+echo "Installation complete" > /root/post.log
+%end

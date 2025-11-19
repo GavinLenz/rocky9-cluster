@@ -1,0 +1,4 @@
+---
+controller_repo_host: "{{ network_config.server_ip | default('10.0.0.1') }}"
+slurm_repo_gpgcheck: "{{ slurm_mirror.gpgcheck | default(0) }}"
+gpgkey_url: /etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-9

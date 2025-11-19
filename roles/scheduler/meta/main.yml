@@ -1,0 +1,16 @@
+---
+# roles/scheduler/meta/main.yml
+galaxy_info:
+  author: Gavin
+  description: >
+    Cluster scheduler configuration and orchestration role.
+    Currently implements the Slurm workload manager, with
+    an abstraction layer to support future schedulers.
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: EL
+      versions:
+        - "9"
+
+dependencies: []

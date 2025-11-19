@@ -1,0 +1,19 @@
+---
+# roles/pxe/handlers/main.yml
+- name: Restart dnsmasq service
+  ansible.builtin.service:
+    name: dnsmasq
+    state: restarted
+  listen: restart dnsmasq
+
+- name: Restart httpd service
+  ansible.builtin.service:
+    name: httpd
+    state: restarted
+  listen: restart httpd
+
+- name: Reload firewalld service
+  ansible.builtin.service:
+    name: firewalld
+    state: reloaded
+  listen: reload firewalld

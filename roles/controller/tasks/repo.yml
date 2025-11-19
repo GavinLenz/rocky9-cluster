@@ -1,0 +1,36 @@
+---
+# roles/controller/tasks/repo.yml
+- name: Ensure repo mount path exists
+  ansible.builtin.file:
+    path: "{{ item.mount_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop: "{{ repos.values() }}"
+  when: repos is defined
+
+- name: Download DVD ISO(s) for internal repo
+  ansible.builtin.get_url:
+    url: "{{ item.url }}"
+    dest: "/var/www/html/{{ item.name }}"
+    mode: '0644'
+    force: false
+  loop: "{{ repos.values() }}"
+  when: repos is defined
+
+- name: Mount repo ISO(s)
+  ansible.posix.mount:
+    src: "/var/www/html/{{ item.name }}"
+    path: "{{ item.mount_path }}"
+    fstype: iso9660
+    opts: loop,ro
+    state: mounted
+  loop: "{{ repos.values() }}"
+  when: repos is defined
+
+- name: Verify AppStream repodata exists
+  ansible.builtin.stat:
+    path: "{{ repos.rocky9_dvd.mount_path }}/AppStream/repodata/repomd.xml"
+  register: repos_check
+  when: repos is defined and repos.rocky9_dvd is defined

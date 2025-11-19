@@ -1,0 +1,26 @@
+---
+# roles/validation/main.yml
+- name: Validation
+  when: inventory_hostname in groups['controller']
+  block:
+    - name: Include Pavilion install tasks
+      ansible.builtin.import_tasks: pavilion_install.yml
+      tags:
+        - validation
+        - validation_pavilion
+        - validation_install
+
+    - name: Include Pavilion config tasks
+      ansible.builtin.import_tasks: pavilion_config.yml
+      tags:
+        - validation
+        - validation_pavilion
+        - validation_config
+
+    - name: Optionally run Pavilion smoke tests
+      ansible.builtin.import_tasks: pavilion_run.yml
+      when: validation_pavilion.enabled | bool
+      tags:
+        - validation
+        - validation_pavilion
+        - validation_run

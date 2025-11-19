@@ -1,0 +1,8 @@
+---
+# roles/controller/tasks/hostname.yml
+- name: Set controller hostname
+  ansible.builtin.hostname:
+    name: "{{ controller_hostname | default(inventory_hostname) }}"
+  tags:
+    - network
+    - hostname

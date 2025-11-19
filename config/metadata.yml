@@ -1,0 +1,6 @@
+---
+# config/metadata.yml
+metadata:
+  name: cluster
+  description: Demo HPC micro-cluster driven by Ansible automation.
+  site: lab

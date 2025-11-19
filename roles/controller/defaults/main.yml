@@ -1,0 +1,50 @@
+---
+# roles/controller/defaults/main.yml
+# These are derived from the top-level inventory vars:
+
+# Repository Paths
+cluster_repo_root: "{{ cluster_repo_root }}"
+cluster_config_root: "{{ cluster_config_root }}"
+cluster_meta_root: "{{ cluster_meta_root }}"
+
+# Core Cluster Metadata
+cluster_name: "{{ cluster_name | default('cluster') }}"
+cluster_description: "{{ cluster_description | default('High-performance cluster controller') }}"
+
+# Python / Virtual Environment
+python_version: "3.9"
+python_executable: "/usr/bin/python3"
+venv_path: "{{ cluster_repo_root }}/.venv"
+venv_bin: "{{ venv_path }}/bin"
+venv_python: "{{ venv_bin }}/python"
+venv_pip: "{{ venv_bin }}/pip"
+venv_ansible: "{{ venv_bin }}/ansible"
+
+venv_packages:
+  - PyYAML
+  - rich
+  - passlib
+
+ansible_collections:
+  - ansible.posix
+  - community.general
+ansible_core_package: "ansible-core==2.15.8"
+
+# Controller Identity
+controller_user: "{{ ansible_user | default('ansible') }}"
+controller_group: "{{ controller_user }}"
+controller_mode: "0755"
+controller_hostname: "{{ inventory_hostname }}"
+
+# Networking (from network_config in inventory)
+controller_interface: "{{ network_config.pxe_iface }}"
+controller_ip: "{{ network_config.server_ip }}"
+controller_gateway: "{{ network_config.gateway }}"
+controller_dns: "{{ network_config.dns }}"
+controller_subnet: "{{ network_config.subnet }}"
+controller_dhcp_range_start: "{{ network_config.dhcp_range.start }}"
+controller_dhcp_range_end: "{{ network_config.dhcp_range.end }}"
+
+# PXE Integration
+pxe_install_drive: "{{ pxe_config.install.drive | default('nvme0n1') }}"
+pxe_default_target: "{{ pxe_config.ipxe.default_target | default('local') }}"

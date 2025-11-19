@@ -1,0 +1,13 @@
+---
+# config/roles.yml
+roles:
+  controller:
+    stack:
+      - common
+      - pxe
+      - slurm
+
+  compute:
+    stack:
+      - common
+      - slurm

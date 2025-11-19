@@ -1,0 +1,14 @@
+---
+# roles/validation/templates/pavilion.yaml.j2
+# Pavilion global configuration, used when we run:
+#   pav --config "{{ validation_pavilion.config_dir }}" ...
+
+config_dirs:
+  - "{{ validation_pavilion.config_dir }}"
+
+working_dir: "{{ validation_pavilion.work_dir }}"
+
+# Kind of verbose; useful for debugging
+log_level: "INFO"
+
+# Can add additional plugin config here...

@@ -1,0 +1,11 @@
+---
+# roles/scheduler/handlers/main.yml
+- name: Restart slurmctld
+  ansible.builtin.service:
+    name: slurmctld
+    state: restarted
+
+- name: Restart slurmd
+  ansible.builtin.service:
+    name: slurmd
+    state: restarted

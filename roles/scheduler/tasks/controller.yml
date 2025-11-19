@@ -1,0 +1,27 @@
+---
+# roles/scheduler/tasks/controller.yml
+- name: Deploy slurm.conf
+  ansible.builtin.template:
+    src: slurm.conf.j2
+    dest: "{{ slurm.slurm_conf_path }}"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart slurmctld
+
+- name: Ensure controller directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ slurm.user }}"
+    group: "{{ slurm.group }}"
+    mode: '0755'
+  loop:
+    - "{{ slurm.state_save_location }}"
+    - "{{ slurm.log_dir }}"
+
+- name: Enable and start slurmctld
+  ansible.builtin.service:
+    name: slurmctld
+    state: started
+    enabled: true

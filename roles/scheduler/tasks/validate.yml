@@ -1,0 +1,36 @@
+---
+# roles/scheduler/tasks/validate.yml
+- name: Determine scheduler services for host
+  ansible.builtin.set_fact:
+    slurm_host_services: >-
+      {{ ['slurmctld', 'munge']
+      if inventory_hostname in groups['controller']
+      else ['slurmd', 'munge'] }}
+
+- name: Validate Slurm-related services are active
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: started
+  register: slurm_service_result
+  loop: "{{ slurm_host_services }}"
+  changed_when: false
+  failed_when: slurm_service_result.state is defined and slurm_service_result.state != 'started'
+
+- name: Report any inactive Slurm services
+  ansible.builtin.assert:
+    that:
+      - slurm_service_result is not failed
+    fail_msg: >
+      One or more Slurm services are inactive on {{ inventory_hostname }}.
+
+- name: Verify scontrol responds correctly
+  ansible.builtin.command: scontrol ping
+  register: slurm_ping
+  changed_when: false
+  failed_when: >
+    slurm_ping.rc != 0 or
+    (
+      'PONG' not in slurm_ping.stdout
+      and 'UP' not in slurm_ping.stdout
+    )
+  when: inventory_hostname == slurm.controller_host

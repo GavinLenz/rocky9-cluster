@@ -1,0 +1,25 @@
+# roles/scheduler/templates/slurm.conf.j2
+ClusterName={{ slurm.cluster_name }}
+ControlMachine={{ slurm.controller_host }}
+SlurmUser=slurm
+SlurmdUser=root
+StateSaveLocation={{ slurm.state_save_location }}
+SlurmdSpoolDir={{ slurm.slurmd_spool_dir }}
+SlurmctldPort={{ slurm.control_port }}
+SlurmdPort={{ slurm.compute_port }}
+AuthType=auth/munge
+CryptoType=crypto/munge
+ProctrackType=proctrack/cgroup
+ReturnToService=2
+SchedulerType=sched/backfill
+SelectType=select/cons_tres
+SelectTypeParameters=CR_Core_Memory
+SlurmctldPidFile=/var/run/slurmctld.pid
+SlurmdPidFile=/var/run/slurmd.pid
+CommunicationParameters=NoAddrCache
+
+{% for host in groups['compute'] %}
+NodeName={{ host }} NodeAddr={{ hostvars[host].ansible_host }} CPUs={{ hostvars[host].cpus | default(8) }} RealMemory={{ hostvars[host].memory_mb | default(32000) }}
+{% endfor %}
+
+PartitionName=debug Nodes=ALL Default=YES MaxTime=INFINITE State=UP

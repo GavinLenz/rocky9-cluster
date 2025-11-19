@@ -1,0 +1,45 @@
+---
+# config/pxe.yml
+pxe:
+  username: ansible
+
+  vendor: rocky
+  image: rocky9_minimal
+
+  install:
+    drive: nvme0n1
+    disable_interfaces: []
+
+  paths:
+    iso_dir: /srv/pxe/iso
+    iso_mount: /var/www/html/os
+    http_root: /var/www/html
+    tftp_root: /srv/tftp
+
+  packages:
+    base:
+      - dnsmasq
+      - tftp-server
+      - httpd
+      - ipxe-bootimgs
+      - rsync
+      - python3-libselinux
+      - policycoreutils-python-utils
+    efi: []
+
+  ipxe:
+    default_target: fresh
+    timeout_ms: 5000
+    menu:
+      - key: i
+        label: Fresh install
+        target: fresh
+      - key: l
+        label: Boot from NVMe
+        target: local
+
+  role_packages:
+    controller:
+      - "@^minimal-environment"
+    compute:
+      - "@^minimal-environment"

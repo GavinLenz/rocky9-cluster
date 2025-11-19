@@ -1,0 +1,46 @@
+---
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'dev/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install project dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements/dev.txt
+
+      - name: Install Ansible collections
+        run: |
+          ansible-galaxy collection install -r requirements/requirements.yml
+
+      - name: Verify inventory generator
+        run: |
+          python inventory/generator.py --list > inventory/inventory.json
+          test -s inventory/inventory.json
+
+      - name: Lint Python
+        run: |
+          ruff check .
+          black --check .
+
+      - name: Lint YAML
+        run: yamllint .
+
+      - name: Lint Ansible
+        run: ansible-lint
