@@ -38,4 +38,7 @@ common_limits:
     value: 65535
 
 server_ip: "{{ network_config.server_ip }}"
+controller_core_repo_ids:
+  - baseos
+  - appstream
 slurm_repo_gpgcheck: "{{ slurm_mirror.gpgcheck | default(0) }}"

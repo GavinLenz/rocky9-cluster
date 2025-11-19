@@ -28,6 +28,11 @@ node exposed to the outside world.
    - Configures dnsmasq, Apache, firewalld, and NetworkManager.
    - Seeds the Munge key, deploys Slurmctld, and ensures services are active.
 
+> Repo note: the `controller_common` role enables the repos listed in
+> `controller_core_repo_ids` (defaults to `baseos` and `appstream`). Override this
+> variable if the controller uses different repo IDs (e.g. RHEL subscription
+> names or a custom mirror) so automated package installs keep working.
+
 ### 3. Operational Discipline
 
 - **No manual edits** under `/etc/dnsmasq*` and `/etc/slurm/`. Always

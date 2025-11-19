@@ -37,8 +37,35 @@
   when: item.authorized_key | length > 0
 
 # 4. Ensure core Rocky repos enabled
-- name: Ensure BaseOS/AppStream repos enabled
-  ansible.builtin.command: dnf config-manager --set-enabled baseos appstream
+- name: Discover defined DNF repositories
+  ansible.builtin.command:
+    cmd: "grep -Rho '^\\[.*\\]' /etc/yum.repos.d"
+  register: controller_repo_scan
+  changed_when: false
+  failed_when: controller_repo_scan.rc not in [0, 1]
+
+- name: Cache controller repo IDs
+  ansible.builtin.set_fact:
+    controller_available_repo_ids: >-
+      {{ controller_repo_scan.stdout_lines | default([])
+         | map('regex_replace', '^\\[(.+)\\]$', '\\1')
+         | list | unique }}
+
+- name: Validate required repo definitions exist
+  ansible.builtin.fail:
+    msg: >-
+      Unable to locate repo id(s) {{ missing_repos | join(', ') }} under /etc/yum.repos.d.
+      Update controller_core_repo_ids with the IDs present on this host before rerunning.
+  when: missing_repos | length > 0
+  vars:
+    missing_repos: "{{ controller_core_repo_ids | difference(controller_available_repo_ids | default([])) }}"
+
+- name: Ensure required repos enabled
+  ansible.builtin.command:
+    cmd: "dnf config-manager --set-enabled {{ item }}"
+  loop: "{{ controller_core_repo_ids }}"
+  loop_control:
+    label: "{{ item }}"
   changed_when: false
 
 # 5. Install baseline packages
