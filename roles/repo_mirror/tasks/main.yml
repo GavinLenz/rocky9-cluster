@@ -19,14 +19,6 @@
         - "{{ slurm_mirror_root }}"
         - "{{ slurm_publish_root | dirname }}"
 
-    - name: Render temporary Slurm upstream repo file (disabled by default)
-      ansible.builtin.template:
-        src: slurm-upstream.repo.j2
-        dest: "/etc/yum.repos.d/{{ slurm_repo_id }}.repo"
-        owner: root
-        group: root
-        mode: '0644'
-
     - name: Sync Slurm repo from upstream
       ansible.builtin.command:
         cmd: >
@@ -89,15 +81,6 @@
         mode: '0644'
         remote_src: true
       when: slurm_repo_gpgcheck | bool
-
-    - name: Disable temporary upstream Slurm repo
-      ansible.builtin.command: "dnf config-manager --set-disabled {{ slurm_repo_id }}"
-      changed_when: false
-
-    - name: Remove temporary upstream Slurm repo file
-      ansible.builtin.file:
-        path: "/etc/yum.repos.d/{{ slurm_repo_id }}.repo"
-        state: absent
 
     - name: Label mirror path for HTTP (SELinux)
       ansible.builtin.command: >

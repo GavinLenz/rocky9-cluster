@@ -1,0 +1,12 @@
+---
+- name: Install upstream Slurm repository definition
+  ansible.builtin.template:
+    src: slurm-upstream.repo.j2
+    dest: "/etc/yum.repos.d/{{ slurm_repo_id }}.repo"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure upstream Slurm repository is enabled
+  ansible.builtin.command: "dnf config-manager --set-enabled {{ slurm_repo_id }}"
+  changed_when: false

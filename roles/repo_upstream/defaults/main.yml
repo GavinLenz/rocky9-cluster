@@ -1,0 +1,6 @@
+---
+slurm_repo_id: "{{ slurm_mirror.repoid | default('rocky-sig-hpc-core') }}"
+slurm_repo_name: "{{ slurm_mirror.name | default('Rocky Linux 9 - SIG HPC Core') }}"
+slurm_repo_url: "{{ slurm_mirror.url | default('https://dl.rockylinux.org/pub/sig/9/hpc/x86_64/hpc-core/') }}"
+slurm_repo_gpgcheck: "{{ slurm_mirror.gpgcheck | default(0) }}"
+slurm_repo_gpgkey_url: "{{ slurm_mirror.gpgkey_url | default('') }}"

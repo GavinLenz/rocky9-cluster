@@ -5,6 +5,7 @@
   become: yes
   roles:
     - role: controller_common
+    - role: repo_upstream
     - role: controller
     - role: repo_mirror
     - role: pxe

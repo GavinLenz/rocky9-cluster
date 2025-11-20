@@ -58,6 +58,7 @@
     mode: '0644'
   vars:
     controller_ip: "{{ hostvars[groups['controller'][0]].ip | default(hostvars[groups['controller'][0]].ansible_host) }}"
+  when: "'controller' not in group_names"
   tags:
     - repo
 
@@ -65,12 +66,14 @@
 - name: Clean DNF metadata
   ansible.builtin.command: dnf clean all
   changed_when: false
+  when: "'controller' not in group_names"
   tags:
     - repo
 
 - name: Rebuild DNF metadata cache
   ansible.builtin.command: dnf makecache
   changed_when: false
+  when: "'controller' not in group_names"
   tags:
     - repo
 
