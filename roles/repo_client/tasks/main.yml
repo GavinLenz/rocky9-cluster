@@ -2,6 +2,7 @@
 - name: Determine controller repo host
   ansible.builtin.set_fact:
     slurm_repo_host: "{{ network_config.server_ip }}"
+  when: "'controller' not in group_names"
 
 - name: Install local Slurm repo file
   ansible.builtin.template:
@@ -10,3 +11,4 @@
     owner: root
     group: root
     mode: '0644'
+  when: "'controller' not in group_names"
