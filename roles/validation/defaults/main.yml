@@ -1,5 +1,4 @@
 ---
-# roles/validation/defaults/main.yml
 validation_pavilion:
   enabled: true
 

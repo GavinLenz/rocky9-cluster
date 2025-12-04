@@ -1,5 +1,4 @@
 ---
-# playbooks/validation.yml
 - name: Run validation tasks on controller
   hosts: controller
   become: true

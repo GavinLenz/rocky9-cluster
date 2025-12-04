@@ -1,5 +1,4 @@
 ---
-# roles/validation/tasks/pavilion_run.yml
 - name: Run Pavilion HPC smoke suite
   ansible.builtin.command:
     cmd: >

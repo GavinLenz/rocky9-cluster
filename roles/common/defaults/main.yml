@@ -1,5 +1,4 @@
 ---
-# roles/common/defaults/main.yml
 common_groups:
   - name: cluster
     system: true

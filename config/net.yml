@@ -1,5 +1,4 @@
 ---
-# config/net.yml
 network:
   pxe_iface: enp5s0
   server_ip: 10.0.0.1
@@ -10,4 +9,3 @@ network:
   dhcp_range:
     start: 10.0.0.10
     end: 10.0.0.15
-  mtu: 1500

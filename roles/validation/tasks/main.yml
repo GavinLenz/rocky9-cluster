@@ -1,5 +1,4 @@
 ---
-# roles/validation/main.yml
 - name: Validation
   when: inventory_hostname in groups['controller']
   block:

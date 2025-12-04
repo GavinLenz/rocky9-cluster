@@ -1,5 +1,4 @@
 ---
-# config/roles.yml
 roles:
   controller:
     stack:

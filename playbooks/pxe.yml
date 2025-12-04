@@ -1,8 +1,8 @@
 ---
-# playbooks/pxe.yml
 - name: Run PXE stack
   hosts: controller
   become: yes
   roles:
     - role: pxe
-      tags: pxe
+      tags:
+        - pxe

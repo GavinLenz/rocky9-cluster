@@ -1,5 +1,4 @@
 #!/bin/bash
-# scripts/dev_venv.sh
 # run on dev machine (not a cluster node)
 
 set -euo pipefail

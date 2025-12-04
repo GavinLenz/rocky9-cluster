@@ -1,4 +1,3 @@
-# .editorconfig
 # This file is deliberately minimal and safe for an Ansible/Kickstart/cluster repo.
 
 root = true

@@ -1,7 +1,0 @@
----
-# config/topology.yml
-topology:
-  links: # todo: add controller ?
-    - [head, node01]
-    - [head, node02]
-    - [head, node03]

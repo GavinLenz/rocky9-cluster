@@ -1,7 +1,0 @@
----
-- name: Install Slurm from local mirror only
-  ansible.builtin.yum:
-    name: "{{ slurm_packages }}"
-    enablerepo: slurm-local
-    disablerepo: "*"
-    state: present

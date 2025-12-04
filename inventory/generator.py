@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# inventory/generator.py
 
 from __future__ import annotations
 

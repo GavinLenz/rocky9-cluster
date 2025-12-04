@@ -1,5 +1,3 @@
-# .gitignore — Rocky Cluster Automation Repository
-
 # Python build and cache
 __pycache__/
 *.py[cod]

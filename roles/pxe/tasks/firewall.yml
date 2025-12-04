@@ -1,6 +1,4 @@
 ---
-# roles/pxe/tasks/firewall.yml
-
 # 0. Ensure firewalld is installed and running
 # handling here instead of preflight.yml to isolate firewall logic
 - name: Ensure firewalld is installed

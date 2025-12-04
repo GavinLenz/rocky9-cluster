@@ -1,5 +1,4 @@
 ---
-# roles/controller/tasks/venv.yml
 - name: Ensure Python 3.9 installed
   ansible.builtin.package:
     name:

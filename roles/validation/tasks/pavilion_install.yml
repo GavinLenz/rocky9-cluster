@@ -1,5 +1,4 @@
 ---
-# roles/validation/tasks/pavilion_install.yml
 - name: Ensure Pavilion OS dependencies are present
   ansible.builtin.package:
     name: # should already be present

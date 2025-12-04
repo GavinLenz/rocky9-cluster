@@ -1,5 +1,4 @@
 ---
-# roles/pxe/tasks/binaries.yml
 - name: Stage iPXE binaries
   ansible.builtin.copy:
     src: "{{ item.src }}"

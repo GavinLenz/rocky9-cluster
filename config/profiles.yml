@@ -1,5 +1,4 @@
 ---
-# config/profiles.yml
 profiles:
   common:
     timezone: UTC

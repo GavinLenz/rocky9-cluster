@@ -1,5 +1,4 @@
 ---
-# roles/validation/pavilion/suites/hpc_smoke.yml
 slurm_smoke:
   summary: "Slurm smoke: hostname fanout over nodes"
   doc: >

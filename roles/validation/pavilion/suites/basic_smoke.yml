@@ -1,5 +1,4 @@
 ---
-# # roles/validation/pavilion/suites/basic_smoke.yml
 network_ping:
   summary: "Network smoke: ping controller from compute nodes"
   scheduler: slurm

@@ -1,5 +1,4 @@
 ---
-# config/images.yml
 images:
   rocky9_minimal:
     name: Rocky-9.6-x86_64-minimal.iso

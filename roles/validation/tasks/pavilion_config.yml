@@ -1,5 +1,4 @@
 ---
-# roles/validation/tasks/pavilion_config.yml
 - name: Create Pavilion config directory
   ansible.builtin.file:
     path: "{{ validation_pavilion.config_dir }}"

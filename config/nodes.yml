@@ -1,5 +1,4 @@
 ---
-# config/nodes.yml
 nodes:
   head:
     role: controller

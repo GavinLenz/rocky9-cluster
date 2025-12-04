@@ -1,5 +1,4 @@
 ---
-# roles/validation/pavilion/hosts/cluster.yml
 # Host config applied when we run with: pav -H cluster ...
 # This is a full test config overlay per Pavilion docs. :contentReference[oaicite:3]{index=3}
 

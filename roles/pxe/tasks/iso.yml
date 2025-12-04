@@ -1,5 +1,4 @@
 ---
-# roles/pxe/tasks/iso.yml
 - name: Ensure ISO present
   ansible.builtin.get_url:
     url: "{{ pxe.iso_url }}"

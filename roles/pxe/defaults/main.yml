@@ -1,16 +1,9 @@
 ---
-# roles/pxe/defaults/main.yml
 # These are derived from the top-level inventory vars:
 pxe:
   # General
   vendor: "{{ pxe_config.vendor | default('rocky') }}"
   image: "{{ pxe_config.image | default('rocky9_minimal') }}"
-
-  # Image metadata (from inventory.images)
-  iso_name: "{{ images[pxe_config.image | default('rocky9_minimal')].name | default(pxe_config.image ~ '.iso') }}"
-  iso_url: "{{ images[pxe_config.image | default('rocky9_minimal')].url | default('') }}"
-  kernel: "{{ images[pxe_config.image | default('rocky9_minimal')].kernel | default('os/images/pxeboot/vmlinuz') }}"
-  initrd: "{{ images[pxe_config.image | default('rocky9_minimal')].initrd | default('os/images/pxeboot/initrd.img') }}"
 
   # Paths
   http_root: "{{ pxe_config.paths.http_root }}"

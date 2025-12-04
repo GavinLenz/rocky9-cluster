@@ -1,5 +1,4 @@
 ---
-# roles/controller/defaults/main.yml
 # These are derived from the top-level inventory vars:
 
 # Repository Paths

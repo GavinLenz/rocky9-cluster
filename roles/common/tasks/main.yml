@@ -1,6 +1,4 @@
 ---
-# roles/common/tasks/main.yml
-
 # 0. Create required groups FIRST
 - name: Ensure cluster groups exist
   ansible.builtin.group:
@@ -57,7 +55,7 @@
     group: root
     mode: '0644'
   vars:
-    controller_ip: "{{ hostvars[groups['controller'][0]].ip | default(hostvars[groups['controller'][0]].ansible_host) }}"
+    controller_ip: "{{ hostvars[groups['controller'][0]].ip }}"
   when: "'controller' not in group_names"
   tags:
     - repo
