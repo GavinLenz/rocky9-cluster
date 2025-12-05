@@ -1,5 +1,4 @@
 ---
-# roles/controller/tasks/static_ip.yml
 - name: Configure static IP for controller
   ansible.builtin.template:
     src: ifcfg.j2

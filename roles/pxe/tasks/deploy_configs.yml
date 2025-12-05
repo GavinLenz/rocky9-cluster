@@ -1,5 +1,4 @@
 ---
-# roles/pxe/tasks/deploy_configs.yml
 - name: Remove legacy dnsmasq PXE config (interface/bind leftovers)
   ansible.builtin.file:
     path: /etc/dnsmasq.d/pxe.conf

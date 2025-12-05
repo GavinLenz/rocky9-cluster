@@ -1,5 +1,4 @@
 ---
-# .ansible-lint.yml
 profile: min
 skip_list:
 

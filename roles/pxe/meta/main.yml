@@ -1,5 +1,4 @@
 ---
-# roles/pxe/meta/main.yml
 galaxy_info:
   author: Gavin
   description: PXE provisioning for Rocky Linux cluster nodes

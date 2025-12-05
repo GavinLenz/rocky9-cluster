@@ -1,12 +1,11 @@
 ---
-# roles/validation/tasks/pavilion_run.yml
-- name: Run Pavilion HPC smoke suite
+- name: Run Pavilion validation suite
   ansible.builtin.command:
     cmd: >
       {{ validation_pavilion.install_dir }}/venv/bin/pav
       --config "{{ validation_pavilion.config_dir }}"
       -H cluster
-      run hpc_smoke.*
+      run {{ validation_pavilion.default_suite }}.*
   args:
     chdir: "{{ validation_pavilion.install_dir }}"
   register: pavilion_run_result

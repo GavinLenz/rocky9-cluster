@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# inventory/generator.py
 
 from __future__ import annotations
 
@@ -22,12 +21,8 @@ CONFIG_FILES = {
     "metadata": CONFIG_DIR / "metadata.yml",
     "net": CONFIG_DIR / "net.yml",
     "nodes": CONFIG_DIR / "nodes.yml",
-    "profiles": CONFIG_DIR / "profiles.yml",
     "pxe": CONFIG_DIR / "pxe.yml",
-    "repos": CONFIG_DIR / "repos.yml",
     "roles": CONFIG_DIR / "roles.yml",
-    "topology": CONFIG_DIR / "topology.yml",
-    "slurm": CONFIG_DIR / "slurm.yml",
 }
 
 
@@ -52,7 +47,6 @@ def build_inventory() -> tuple[dict[str, Any], dict[str, Any]]:
     roles = cfg.get("roles", {}).get("roles", {})
     net = cfg.get("net", {}).get("network", {})
     pxe = cfg.get("pxe", {}).get("pxe", {})
-    slurm_cfg = cfg.get("slurm", {})
 
     # Load secret credentials from .env
     root_hash = ENV.get("PXE_ROOT_PASSWORD_HASH")
@@ -99,7 +93,7 @@ def build_inventory() -> tuple[dict[str, Any], dict[str, Any]]:
                 "ansible_python_interpreter", "/usr/bin/python3"
             ),
             "cluster_role": "compute",
-            "pxe_mac": node.get("mac", []),
+            "nic_mac": node.get("mac", []),
         }
         hostvars[name].update(node.get("variables", {}))
 
@@ -109,19 +103,16 @@ def build_inventory() -> tuple[dict[str, Any], dict[str, Any]]:
         "cluster_description": cfg.get("metadata", {}).get("description", ""),
         "cluster_repo_root": str(ROOT),
         "cluster_config_root": str(CONFIG_DIR),
-        "cluster_profiles": cfg.get("profiles", {}),
         "cluster_roles": roles,
         "network_config": net,
         "pxe_config": pxe,
         "images": cfg.get("images", {}).get("images", {}),
-        "repos": cfg.get("repos", {}).get("repos", {}),
         "pxe_runtime_credentials": {
             "username": pxe.get("username", "ansible"),
             # Injected from .env
             "root_password_hash": root_hash,
             "local_user_password_hash": local_hash or root_hash,
         },
-        "slurm_mirror": slurm_cfg.get("slurm_mirror", {}),
     }
 
     # Embed host-specific vars directly under each host entry so Ansible's YAML

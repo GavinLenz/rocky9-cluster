@@ -1,8 +1,0 @@
-[slurm-local]
-name=Slurm Local Mirror
-baseurl=http://{{ slurm_repo_host }}/slurm
-enabled=1
-gpgcheck={{ slurm_repo_gpgcheck }}
-{% if slurm_repo_gpgcheck | bool -%}
-gpgkey=http://{{ slurm_repo_host }}/slurm/GPG-KEY-SLURM
-{% endif -%}

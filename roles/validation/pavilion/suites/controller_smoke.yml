@@ -1,0 +1,76 @@
+---
+controller_dnsmasq:
+  summary: "dnsmasq service is active"
+  scheduler: raw
+  run:
+    cmds:
+      - |
+        set -eu
+        state=$(systemctl is-active dnsmasq)
+        echo "STATE=${state}"
+  result_parse:
+    regex:
+      regex: '^STATE=(?P<state>\w+)$'
+      matches: one
+  result_evaluate:
+    ok:
+      formula: "result.regex.state == 'active'"
+      result: "PASS"
+      fail_result: "FAIL"
+
+controller_httpd:
+  summary: "httpd service is active"
+  scheduler: raw
+  run:
+    cmds:
+      - |
+        set -eu
+        state=$(systemctl is-active httpd)
+        echo "STATE=${state}"
+  result_parse:
+    regex:
+      regex: '^STATE=(?P<state>\w+)$'
+      matches: one
+  result_evaluate:
+    ok:
+      formula: "result.regex.state == 'active'"
+      result: "PASS"
+      fail_result: "FAIL"
+
+controller_firewall:
+  summary: "Firewall exposes PXE services (http, tftp, dhcp)"
+  scheduler: raw
+  run:
+    cmds:
+      - |
+        set -eu
+        services=$(firewall-cmd --list-services | tr -s '[:space:]' ' ')
+        echo "SERVICES=${services}"
+  result_parse:
+    regex:
+      regex: '^SERVICES=(?P<services>.+)$'
+      matches: one
+  result_evaluate:
+    ok:
+      formula: "all(svc in result.regex.services.split() for svc in ['http','tftp','dhcp'])"
+      result: "PASS"
+      fail_result: "FAIL"
+
+controller_repo:
+  summary: "Mirror repository tree exists"
+  scheduler: raw
+  run:
+    cmds:
+      - |
+        set -eu
+        count=$(ls -1 /var/www/html/repos | wc -l)
+        echo "REPO_COUNT=${count}"
+  result_parse:
+    regex:
+      regex: '^REPO_COUNT=(?P<count>\d+)$'
+      matches: one
+  result_evaluate:
+    ok:
+      formula: "int(result.regex.count) >= 1"
+      result: "PASS"
+      fail_result: "FAIL"

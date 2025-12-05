@@ -1,5 +1,4 @@
 ---
-# roles/pxe/tasks/preflight.yml
 - name: Install PXE server packages
   package:
     name:

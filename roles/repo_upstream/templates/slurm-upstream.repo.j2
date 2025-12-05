@@ -1,8 +1,0 @@
-[{{ slurm_repo_id }}]
-name={{ slurm_repo_name }}
-baseurl={{ slurm_repo_url }}
-enabled=1
-gpgcheck={{ slurm_repo_gpgcheck }}
-{% if slurm_repo_gpgcheck | bool and slurm_repo_gpgkey_url | length > 0 -%}
-gpgkey={{ slurm_repo_gpgkey_url }}
-{% endif -%}

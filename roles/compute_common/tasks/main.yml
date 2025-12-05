@@ -6,7 +6,7 @@
     system: "{{ item.system | default(true) }}"
   loop: "{{ common_groups }}"
 
-- name: Create cluster users
+- name: Create automation users
   ansible.builtin.user:
     name: "{{ item.name }}"
     groups: "{{ item.groups | default([]) }}"
@@ -14,7 +14,7 @@
     state: present
   loop: "{{ common_users }}"
 
-- name: Allow passwordless sudo for automation user
+- name: Configure passwordless sudo for automation user
   ansible.builtin.copy:
     dest: /etc/sudoers.d/99-ansible-nopasswd
     content: "ansible ALL=(ALL) NOPASSWD:ALL\n"
@@ -22,7 +22,7 @@
     group: root
     mode: '0440'
 
-- name: Install authorized SSH keys
+- name: Install controller public key for automation user
   ansible.posix.authorized_key:
     user: "{{ item.name }}"
     key: "{{ item.authorized_key }}"
@@ -30,23 +30,8 @@
   loop: "{{ common_users | selectattr('authorized_key','defined') }}"
   when: item.authorized_key | length > 0
 
-- name: Ensure baseline packages installed
+- name: Ensure Python present for Ansible
   ansible.builtin.package:
     name: "{{ common_packages }}"
     state: present
-
-- name: Apply sysctl defaults
-  ansible.posix.sysctl:
-    name: "{{ item.key }}"
-    value: "{{ item.value }}"
-    state: present
-    reload: yes
-  loop: "{{ common_sysctl | dict2items }}"
-
-- name: Apply ulimit settings
-  community.general.pam_limits:
-    domain: "{{ item.domain }}"
-    limit_type: "{{ item.type }}"
-    limit_item: "{{ item.item }}"
-    value: "{{ item.value }}"
-  loop: "{{ common_limits }}"
+  when: common_packages | length > 0

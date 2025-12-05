@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# scripts/generate_hashes.py
 
 import getpass
 import sys

@@ -1,5 +1,4 @@
 ---
-# roles/validation/defaults/main.yml
 validation_pavilion:
   enabled: true
 
@@ -15,7 +14,13 @@ validation_pavilion:
   # Pavilion git repo (LANL public).
   repo_url: "https://github.com/lanl/Pavilion2.git"
   repo_version: "main"
+  bootstrap_packages:
+    - pip==24.0
+    - setuptools==69.0.3
+    - wheel==0.42.0
+  venv_path: "{{ validation_pavilion.install_dir }}/venv"
+  venv_python: "{{ validation_pavilion.install_dir }}/venv/bin/python"
+  venv_pip: "{{ validation_pavilion.install_dir }}/venv/bin/pip"
 
-  # Slurm default partition/account used by tests.
-  slurm_partition: "debug"
-  slurm_account: ""
+  # Which Pavilion suite (file prefix) to execute by default.
+  default_suite: "controller_smoke"

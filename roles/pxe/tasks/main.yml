@@ -1,5 +1,4 @@
 ---
-# roles/pxe/tasks/main.yml
 - name: PXE
   block:
     - import_tasks: preflight.yml

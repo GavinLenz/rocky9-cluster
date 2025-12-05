@@ -1,5 +1,4 @@
 ---
-# roles/controller/meta/main.yml
 galaxy_info:
   author: Gavin
   description: Controller role for Rocky cluster — bootstraps head node, venv, and network identity

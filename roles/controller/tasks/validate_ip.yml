@@ -1,5 +1,4 @@
 ---
-# roles/controller/tasks/validate.yml
 - name: Confirm controller IP matches network_config.server_ip
   ansible.builtin.assert:
     that:

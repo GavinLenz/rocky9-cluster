@@ -6,6 +6,6 @@ autoconnect=true
 
 [ipv4]
 method=manual
-address1={{ network_config.server_ip }}/{{ network_config.subnet | default('10.0.0.0/24') | ansible.utils.ipaddr('prefix') }},{{ network_config.gateway }}
+address1={{ network_config.server_ip }}/{{ network_config.subnet | default('10.0.0.0/24') | ansible.utils.ipaddr('prefix') }},{{ network_config.gateway | default(network_config.server_ip, true) }}
 dns={{ network_config.dns }}
 may-fail=false

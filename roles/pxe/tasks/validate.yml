@@ -1,5 +1,4 @@
 ---
-# roles/pxe/tasks/validate.yml
 - name: Validate PXE environment readiness
   block:
 

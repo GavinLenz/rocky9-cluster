@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
 """
-Robust cleanup utility for development artifacts.
-Removes cache directories, Python bytecode, and build debris
-without risking accidental deletion outside the repository root.
-
-Safe, deterministic, audit-friendly.
+Removes cache directories and Python bytecode without
+risking accidental deletion outside the repository root.
 """
 
 from __future__ import annotations
@@ -31,7 +28,7 @@ DEFAULT_DIRS = (
     ".ruff_cache",
 )
 
-# Directories that will *never* be removed
+# Directories that will never be removed
 PROTECTED = {
     "/",
     "/root",
@@ -95,13 +92,11 @@ def remove_path(path: Path, *, dry: bool) -> None:
 
 
 def cleanup(root: Path, patterns: Iterable[str], dirs: Iterable[str], *, dry: bool) -> None:
-    # Remove directories first (faster)
     for d in dirs:
         for p in root.rglob(d):
             if p.is_dir():
                 remove_path(p, dry=dry)
 
-    # Then glob patterns (files)
     for pattern in patterns:
         for path in root.rglob(pattern):
             remove_path(path, dry=dry)
@@ -121,7 +116,6 @@ def main(argv=None) -> int:
 
     root = args.root.resolve()
 
-    # Validate root
     if is_protected(root):
         sys.stderr.write(f"[ERROR] Refusing to clean protected path: {root}\n")
         return 1

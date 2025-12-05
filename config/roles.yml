@@ -1,16 +1,11 @@
 ---
-# config/roles.yml
 roles:
   controller:
     stack:
       - controller_common
       - controller
-      - repo_mirror
       - pxe
-      - scheduler
 
   compute:
     stack:
-      - common
-      - repo_client
-      - install_slurm
+      - compute_common

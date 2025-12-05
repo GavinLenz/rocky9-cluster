@@ -1,5 +1,4 @@
 ---
-# roles/pxe/tasks/httpd.yml
 - name: Install webserver for PXE
   package:
     name: httpd

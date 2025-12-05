@@ -1,5 +1,4 @@
 ---
-# config/pxe.yml
 pxe:
   username: ansible
 

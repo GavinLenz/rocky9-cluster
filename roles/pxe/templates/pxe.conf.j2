@@ -1,4 +1,3 @@
-# roles/pxe/templates/pxe.conf.j2
 # Cluster PXE and DHCP configuration
 
 port=0
@@ -18,7 +17,7 @@ dhcp-option=6,{{ pxe.dns }}
 {% for group in ['compute'] %}
 {% for host in groups.get(group, []) %}
 {% set host_ip = hostvars[host].ansible_host | default(host) %}
-{% set macs = hostvars[host].get('pxe_mac', []) %}
+{% set macs = hostvars[host].get('nic_mac', []) %}
 {% for mac in macs %}
 {% if mac and mac != '00:00:00:00:00:00' %}
 dhcp-host={{ mac | lower }},{{ host }},{{ host_ip }},infinite

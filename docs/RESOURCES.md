@@ -15,8 +15,6 @@
 
 ### 3. Scheduler / Validation
 
-- **Slurm Quick Start** – <https://slurm.schedmd.com/quickstart_admin.html>.
-  Maps 1:1 with the `roles/scheduler` expectations.
 - **LANL Pavilion2** – Repo: <https://github.com/lanl/Pavilion>; Docs: <https://pavilion2.readthedocs.io>.
   Critical for the validation role and suite layout.
 
