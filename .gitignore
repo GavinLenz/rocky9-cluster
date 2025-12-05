@@ -60,15 +60,9 @@ nohup.out
 /srv/tftp/
 /var/www/html/os/
 /var/www/html/repos/
-/cluster/shared/
-/cluster/data/
-/cluster/results/
 
 # Local configs and secrets
 .env
-config/*.secret.yml
-config/*.local.yml
-config/private.yml
 *.pem
 *.key
 *.crt
@@ -107,6 +101,7 @@ sandbox/
 .bash_history
 .history
 
-# for me
+# scratch
 _docs/
 _*.md
+_*.txt
