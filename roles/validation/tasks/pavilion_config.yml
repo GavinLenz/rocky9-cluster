@@ -12,7 +12,7 @@
     dest: "{{ validation_pavilion.config_dir }}/pavilion.yaml"
     mode: "0644"
 
-- name: Copy Pavilion suites ... # TODO: need to implement
+- name: Copy Pavilion suites ...
   ansible.builtin.copy:
     dest: "{{ validation_pavilion.config_dir }}/{{ item.dest }}"
     content: "{{ lookup('template', role_path ~ '/' ~ item.src) }}"

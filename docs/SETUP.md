@@ -109,18 +109,41 @@ Copy the output into `.env`.
 
 ## 3. Running Ansible
 
-From the development machine:
+Playbooks are wrapped in the Makefile so day-to-day runs stay reproducible:
 
 ```bash
-source .venv/bin/activate
-ansible-playbook -i inventory/generator.py playbooks/site.yml
+make inv          # regenerate inventory/inventory.json from config/*.yml
+make controller   # apply controller_common → controller → pxe on the controller
+make compute      # seed compute nodes with compute_common (SSH + Python)
+make validate     # install Pavilion locally and run controller smoke tests
 ```
 
-The generator builds the inventory dynamically from `config/`.
+All targets call `inventory/generator.py` directly; no static YAML inventory exists.
 
 ---
 
-## 4. Directory Summary
+## 4. Deployment Pipeline
+
+1. **Stage 0 – Config Authoring**
+   - Edit `config/*.yml` to describe nodes, network, PXE images, and role stacks.
+   - Populate `.env` with PXE password hashes.
+   - Run `make inv` to compile `inventory/inventory.json` and refresh the fact cache.
+2. **Stage 1 – PXE Bootstrap (part of `make controller`)**
+   - Controller enables dnsmasq, Apache, and TFTP.
+   - iPXE pulls kernel/initrd + `ks.cfg` from `http://10.0.0.1/os`.
+3. **Stage 2 – Controller Configuration**
+   - `make controller` enforces `controller_common → controller → pxe`.
+   - Ensures Python tooling, PXE assets, firewall rules, and validation hooks are in place.
+4. **Stage 3 – Compute Bootstrap**
+   - PXE-installed nodes reboot, then `make compute` runs `compute_common` to create the `ansible` user, install Python, and authorize controller SSH.
+5. **Stage 4 – Validation**
+   - `make validate` installs Pavilion under `/opt/pavilion2`, copies raw-scheduler suites, and runs controller-local smoke tests for PXE, HTTP, and firewall.
+6. **Stage 5 – Workloads (manual)**
+   - Once validation passes, layer schedulers or benchmarking stacks as needed. Today this step is manual and intentionally outside Ansible.
+
+---
+
+## 5. Directory Summary
 
 ```
 requirements/

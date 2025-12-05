@@ -358,7 +358,469 @@ jobs:
         run: ansible-lint
 
 
-===== ./output.txt =====
+===== ./docs/SETUP.md =====
+# Development and Controller Setup Guide
+
+This document explains how to prepare a development machine and how to bootstrap
+the controller node that drives the provisioning workflow.
+
+The cluster itself is always provisioned through Ansible. No development tools
+should be installed directly on the controller unless explicitly noted.
+
+---
+
+## 1. Development Environment
+
+The development environment is the workstation used to edit the repository,
+run Ansible, and execute validation tooling.
+
+### 1.1 Required packages
+> This is what I use for my Rocky 9.6 WSL 
+```bash
+sudo dnf -y install python3 python3-devel make curl wget tar gzip unzip vim tmux jq rsync findutils tree
+```
+> Some optional packages that are nice to have
+```bash
+sudo dnf -y install findutils tree
+```
+
+### 1.2 Required software
+- Python 3.9 or later
+- Git
+- A supported terminal (WSL2, native Linux, or macOS)
+- SSH client
+
+### 1.3 Install Python dependencies
+Development dependencies are isolated in `requirements/dev.txt`:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements/dev.txt
+```
+
+### 1.4 Install required Ansible Galaxy collections
+
+```bash
+ansible-galaxy collection install -r requirements/requirements.yml
+```
+
+### 1.5 Pre-commit hooks (optional but recommended)
+
+If pre-commit is installed:
+
+```bash
+pre-commit install
+```
+
+This enforces formatting and linting before each commit.
+
+---
+
+## 2. Controller Node Setup
+
+The controller node is the head of the cluster.
+It must remain minimal and should **not** install development tooling.
+
+### 2.1 Required software
+
+The controller requires:
+
+* Python 3.9 (system `python3` on Rocky 9)
+* Minimal runtime libraries for the dynamic inventory and PXE subsystem
+
+### 2.2 Install Python runtime dependencies
+
+On the controller:
+
+```bash
+python3 -m venv ~/.venv
+source ~/.venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements/controller.txt
+```
+
+### 2.3 Install Ansible collections
+
+Same as the development machine:
+
+```bash
+ansible-galaxy collection install -r requirements/requirements.yml
+```
+
+### 2.4 Repository secrets
+
+Credentials used by Kickstart and PXE provisioning are loaded from `.env`.
+A template is provided:
+
+```
+.env.example
+```
+
+To populate a real `.env`, use the provided script:
+
+```bash
+./scripts/generate_hashes.py
+```
+
+Copy the output into `.env`.
+
+---
+
+## 3. Running Ansible
+
+Playbooks are wrapped in the Makefile so day-to-day runs stay reproducible:
+
+```bash
+make inv          # regenerate inventory/inventory.json from config/*.yml
+make controller   # apply controller_common → controller → pxe on the controller
+make compute      # seed compute nodes with compute_common (SSH + Python)
+make validate     # install Pavilion locally and run controller smoke tests
+```
+
+All targets call `inventory/generator.py` directly; no static YAML inventory exists.
+
+---
+
+## 4. Deployment Pipeline
+
+1. **Stage 0 – Config Authoring**
+   - Edit `config/*.yml` to describe nodes, network, PXE images, and role stacks.
+   - Populate `.env` with PXE password hashes.
+   - Run `make inv` to compile `inventory/inventory.json` and refresh the fact cache.
+2. **Stage 1 – PXE Bootstrap (part of `make controller`)**
+   - Controller enables dnsmasq, Apache, and TFTP.
+   - iPXE pulls kernel/initrd + `ks.cfg` from `http://10.0.0.1/os`.
+3. **Stage 2 – Controller Configuration**
+   - `make controller` enforces `controller_common → controller → pxe`.
+   - Ensures Python tooling, PXE assets, firewall rules, and validation hooks are in place.
+4. **Stage 3 – Compute Bootstrap**
+   - PXE-installed nodes reboot, then `make compute` runs `compute_common` to create the `ansible` user, install Python, and authorize controller SSH.
+5. **Stage 4 – Validation**
+   - `make validate` installs Pavilion under `/opt/pavilion2`, copies raw-scheduler suites, and runs controller-local smoke tests for PXE, HTTP, and firewall.
+6. **Stage 5 – Workloads (manual)**
+   - Once validation passes, layer schedulers or benchmarking stacks as needed. Today this step is manual and intentionally outside Ansible.
+
+---
+
+## 5. Directory Summary
+
+```
+requirements/
+  controller.txt      # runtime only (controller node)
+  dev.txt             # development tooling (workstation)
+  requirements.yml    # galaxy collections (shared)
+
+scripts/
+  generate_hashes.py  # password hashing helper
+  cleanup.py          # repository cache cleaning
+
+docs/
+  SETUP.md            # this document
+```
+
+This structure keeps concerns separated and avoids polluting runtime nodes
+with development tools.
+
+```
+
+====================================================================
+README excerpt: Dependency Model  
+====================================================================
+Insert below an existing “Architecture” or “Design Notes” section in your README.
+
+```
+
+## Dependency Model
+
+This repository uses a strict separation of dependency surfaces. The cluster
+controller, compute nodes, and development workstation operate in different
+execution contexts and therefore require different dependency sets.
+
+### 1. Development Dependencies
+
+The workstation (WSL2, Linux, or macOS) installs:
+
+```
+requirements/dev.txt
+```
+
+This includes formatting, linting, testing, and Ansible CLI tooling.
+These dependencies must **never** be installed on controller or compute nodes.
+
+### 2. Controller Runtime Dependencies
+
+The controller node uses:
+
+```
+requirements/controller.txt
+```
+
+This contains only the libraries required to run the dynamic inventory,
+PXE generation code, and provisioning logic.
+The controller runs a minimal Python footprint and should not carry any
+development tooling.
+
+### 3. Ansible Collections
+
+Both the development machine and controller install:
+
+```
+requirements/requirements.yml
+```
+
+This file defines Galaxy collections required for Ansible execution, such as:
+
+* `ansible.posix`
+* `community.general`
+
+Collections are installed with:
+
+```bash
+ansible-galaxy collection install -r requirements/requirements.yml
+```
+
+### 4. Why this model exists
+
+* Development machines carry analysis, linting, testing, and orchestration (of repo and controller configuration).
+* Controller nodes carry the smallest possible runtime footprint.
+* Compute nodes remain free of all off-path tooling.
+
+This principle reduces security exposure, prevents configuration drift, and
+keeps operational nodes deterministic.
+
+
+===== ./docs/RESOURCES.md =====
+## RESOURCES.md
+
+### 1. Provisioning / Automation
+
+- **Ansible Tips & Tricks** – <https://docs.ansible.com/projects/ansible/latest/tips_tricks/index.html>.
+  Reminds me what the engine can actually do before I reinvent another shell loop.
+- **community.general Collection Docs** – <https://docs.ansible.com/projects/ansible/latest/collections/community/general/index.html>.
+  Required reading for modules like `community.general.pam_limits` and `authorized_key`.
+
+### 2. PXE & Kickstart
+
+- **Red Hat Kickstart Reference** – <https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/9/html/performing_an_advanced_rhel_installation/kickstart-commands-and-options-reference>.
+  The law for `network`, `user`, and `%post` semantics.
+- **iPXE Docs** – <https://ipxe.org/scripting> for templating boot menus.
+
+### 3. Scheduler / Validation
+
+- **LANL Pavilion2** – Repo: <https://github.com/lanl/Pavilion>; Docs: <https://pavilion2.readthedocs.io>.
+  Critical for the validation role and suite layout.
+
+### 4. Misc
+
+- **Rocky Linux Docs** – <https://docs.rockylinux.org/>. Shared base for Kickstart +
+  package expectations.
+
+===== ./docs/HOSTS.md =====
+## HOSTS.md
+
+This guide describes what each host role does today. The controller is feature-rich
+because it owns PXE, validation, and repo state; compute nodes are intentionally
+minimal so they can be wiped and rebuilt quickly.
+
+---
+
+## 1. Controller Role
+
+### Responsibilities
+
+1. **PXE authority** – dnsmasq + Apache + TFTP netboot the fleet. All Kickstart
+   media, iPXE binaries, and repo mirrors live under `/var/www/html` and `/srv/tftp`.
+2. **Configuration hub** – dynamic inventory, playbooks, and Pavilion run here.
+3. **Validation** – Pavilion installs under `/opt/pavilion2` and runs controller-
+   local smoke tests (PXE services, HTTP, firewall, repo mirrors).
+
+### Provisioning Flow
+
+1. Clone the repo and populate `.env` with password hashes from
+   `scripts/generate_hashes.py`.
+2. `make inv` to generate `inventory/inventory.json`.
+3. `make controller`, which enforces:
+   - `controller_common`: users, SSH keys, sudoers drop-in, baseline packages.
+   - `controller`: hostname, static IP, Python virtualenv for Ansible.
+   - `pxe`: dnsmasq, Apache, firewall, PXE assets, ISO mounts.
+4. Optional: `make validate` installs Pavilion and runs the raw scheduler suites.
+
+### Operational Discipline
+
+- Never edit `/etc/dnsmasq*`, `/etc/NetworkManager/system-connections/*`, or
+  `/opt/pavilion2` manually—change the role templates and rerun Ansible.
+- Keep `inventory/inventory.json` current (`make inv`) before any playbook runs.
+- When applying firewall changes over SSH, confirm the source IP so the guard logic
+  adds the correct temporary allow rule.
+
+### Failure Modes
+
+| Symptom                     | Likely Cause                     | Recovery                                               |
+| --------------------------- | -------------------------------- | ------------------------------------------------------ |
+| PXE clients hang on DHCP    | dnsmasq down / wrong subnet      | `systemctl status dnsmasq`; rerun `make controller`.   |
+| Kickstart downloads fail    | Apache not serving `/var/www`    | `curl http://10.0.0.1/os/...`; check SELinux + rerun.  |
+| Pavilion run fails          | Missing configs or services      | Ensure PXE role succeeded, rerun `make validate`.      |
+| Firewall locks out SSH      | Wrong source IP in guard logic   | Access via console, revert `firewalld`, rerun playbook |
+
+---
+
+## 2. Compute Role
+
+### Responsibilities
+
+1. Boot via PXE/iPXE/Kickstart and register the `ansible` automation user.
+2. Keep only the minimal baseline needed for remote management (Python + SSH).
+3. Stay disposable—if a node drifts, reimage it.
+
+### Provisioning Flow
+
+1. Set BIOS/UEFI to PXE first, NVMe second. Ensure NIC MACs are recorded in
+   `config/nodes.yml`.
+2. After Kickstart completes, run `make compute`. The `compute_common` role:
+   - Creates the `cluster` group (system) and `ansible` user.
+   - Installs the controller’s public key and passwordless sudo drop-in.
+   - Installs `python3` so Ansible modules can execute.
+
+> Future scheduler or application roles will be layered on top once the control
+> plane hardens. For now, compute nodes are barebones by design.
+
+### Troubleshooting
+
+| Symptom                | Probable Cause                  | Fix                                             |
+| ---------------------- | ------------------------------- | ----------------------------------------------- |
+| Node stuck looping PXE | Boot order reset / wrong MAC    | Reorder devices, verify MAC in `config/nodes`.  |
+| Ansible SSH failures   | User/key mismatch               | Re-run `make compute`, confirm `ansible` user.  |
+| Python missing         | Kickstart image changed         | Install `python3`, rerun `compute_common`.      |
+
+### Runtime Expectations
+
+- Nodes remain stateless; no firewalld or scheduler config is applied yet.
+- Reapply `make compute` after firmware updates or reimages to keep credentials in sync.
+
+
+===== ./docs/DEV.md =====
+## DEV.md
+
+The development environment is configured for repeatable Ansible work.
+
+### 1. Baseline Environment
+
+- **OS**: Bare-metal Rocky 9.6 or WSL2 on Windows with Rocky image.
+- **Python**: System `python3` (Rocky 9 defaults to 3.9) with `python3-devel` for venv builds.
+- **Packages**: `dnf install git make gcc python3 python3-devel openssl jq rsync
+  tar gzip unzip tmux vim`.
+- **Secrets**: `.env` stays outside git. Create `.env`, then run
+  `scripts/generate_hashes.py`, paste hashes inside `.env`, and `chmod 600 .env`.
+
+### 2. Workflow Loop
+
+1. `git pull --rebase` to stay current.
+2. `make dev-env` (runs the hardening script with sudo) the first time on a
+   new machine.
+3. `source .venv/bin/activate` and if anything changes, run `pip install -r requirements/dev.txt` .
+4. Edit configs, roles, or templates. Keep commits intentional and documented.
+5. `make lint`  blocks merges if the style or Ansible best practices are not being met.
+6. `make inv` + the relevant playbook target(s).
+7. `make validate` whenever major surfaces move.
+
+### 3. Quality Gates
+
+- **Lint**: Black, Ruff, Yamllint, and ansible-lint must all pass.
+- **Inventory**: `make inv-show | jq '.controller.hosts'` should always return the
+  expected nodes. If not, fix `config/*.yml` before running playbooks.
+- **Secrets**: Git should never show `.env` or password hashes. Verify `.gitignore`
+  is doing its job.
+
+### 4. Local Testing Tricks
+
+- Use `ANSIBLE_STDOUT_CALLBACK=debug` when troubleshooting tasks.
+- `ANSIBLE_NOCOWS=1` stays set in the Makefile to remove noise.
+- `make inv-clean` to avoid stale caches.
+
+### 5. Review Discipline
+
+- All changes require an accompanying note in `docs/CHANGES.md` or a relevant doc
+  file so the operational context never lags behind the code.
+- Favor small commits that map 1:1 with conceptual changes.
+
+
+===== ./docs/ARCHITECTURE.md =====
+# ARCHITECTURE.md
+
+The cluster is intentionally small, repeatable, and deterministic. Every hardware
+choice and software path exists to keep the operating envelope legible. This file is
+the top-level contract for how the system is stitched together.
+
+---
+
+## 1. Physical And Logical Topology
+
+| Role       | Hostname | CPU / RAM                  | Notes                                      |
+| ---------- | -------- | -------------------------- | ------------------------------------------ |
+| Controller | head     | Ryzen 7 PRO 4750U  / 16 GB | Runs PXE, Apache, dnsmasq, Pavilion        |
+| Compute    | node01   | Ryzen 6800H / 24 GB        | Netboot target, ready for future workloads |
+| Compute    | node02   | Ryzen 6800H / 24 GB        | Netboot target, ready for future workloads |
+| Compute    | node03   | Ryzen 6800H / 24 GB        | Netboot target, ready for future workloads |
+
+Hardware is intentionally pragmatic: an old laptop serves as the controller and three
+refurbished gaming laptops provide compute. Networking stays simple—Cat6e cables into
+a 2.5 GbE switch and a flat `/24` LAN. Keep hardware notes in this file so topology,
+firmware updates, or replacements are tracked alongside the architectural intent.
+
+* Interfaces are hard-wired to a single flat `/24` (10.0.0.0/24) switch. No routing,
+  no DHCP from upstream. The controller’s `enp5s0` is authoritative for DHCP, PXE,
+  and HTTP.
+* Shared file services are deferred for the MVP; compute nodes run from local disks for
+  now.
+
+## 2. Control Flow
+
+1. **PXE/iPXE**: Controller’s dnsmasq advertises DHCP + TFTP. Clients netboot into an
+   iPXE script that points at `http://10.0.0.1/os` for kernel/initrd and downloads
+   `ks.cfg` from the same host.
+2. **Kickstart**: Installs Rocky 9 Minimal, configures networking via DHCP, creates
+   the `ansible` user, and hands off to the installed OS.
+3. **Dynamic Inventory**: `inventory/generator.py` reads `config/*.yml` + `.env`
+   secrets to emit `inventory/inventory.json`. That file is the single source of truth
+   for hostvars, PXE metadata, and credentials.
+4. **Ansible Roles**: `make controller` runs `controller_common → controller → pxe`.
+   `make compute` currently runs only `compute_common`, which seeds SSH access and
+   Python so future workloads can be layered in. Re-running the targets is safe.
+5. **Validation**: Pavilion installs on the controller and runs raw-scheduler smoke
+   tests that exercise PXE services, firewall state, and repo mirrors locally before
+   compute hosts come online.
+
+
+### Role Stack Per Host
+
+- **Controller**: `controller_common → controller → pxe`
+- **Compute**: `compute_common` (SSH + Python bootstrap today; future scheduler TBD)
+
+## 3. Network Contracts
+
+- `10.0.0.1` – Controller interface. DHCP scope 10.0.0.10–10.0.0.15 for PXE installs.
+- DNS points at the controller. External DNS is proxied through `8.8.8.8` only to
+  simplify Kickstart repos.
+- All hosts enforce a baseline firewalld policy. Controller opens HTTP/TFTP/DHCP.
+  Compute nodes allow SSH plus internal traffic.
+
+## 4. State Surfaces
+
+- `/srv/tftp`, `/var/www/html/os`, `/var/www/html/repos` on the controller store PXE
+  artifacts and mirrored RPM repositories.
+- `.ansible_cache` and `inventory/inventory.json` live on the dev machine to speed up
+  repeated runs.
+
+This architecture intentionally avoids hidden state. If you need to change any
+boundary (new subnet or more nodes), update `config/*.yml`, rerun `make inv`, and then
+reapply the relevant playbooks. If you later add clustered file services, revisit the
+inventory, roles, and firewall expectations.
+
+===== ./README.md =====
+# Rocky 9.6 Micro-Cluster Automation
+
 
 
 ===== ./config/pxe.yml =====
@@ -1368,7 +1830,6 @@ slurm_repo_gpgcheck: "{{ slurm_mirror.gpgcheck | default(0) }}"
 
 ===== ./roles/controller_common/tasks/main.yml =====
 ---
-# 0. Create required groups FIRST
 - name: Ensure cluster groups exist
   ansible.builtin.group:
     name: "{{ item.name }}"
@@ -1376,7 +1837,6 @@ slurm_repo_gpgcheck: "{{ slurm_mirror.gpgcheck | default(0) }}"
     system: "{{ item.system | default(true) }}"
   loop: "{{ common_groups }}"
 
-# 1. Create cluster users
 - name: Create cluster users
   ansible.builtin.user:
     name: "{{ item.name }}"
@@ -1385,7 +1845,6 @@ slurm_repo_gpgcheck: "{{ slurm_mirror.gpgcheck | default(0) }}"
     state: present
   loop: "{{ common_users }}"
 
-# 2. Allow passwordless sudo for automation user
 - name: Allow passwordless sudo for automation user
   ansible.builtin.copy:
     dest: /etc/sudoers.d/99-ansible-nopasswd
@@ -1394,7 +1853,6 @@ slurm_repo_gpgcheck: "{{ slurm_mirror.gpgcheck | default(0) }}"
     group: root
     mode: '0440'
 
-# 3. Install authorized SSH keys
 - name: Install authorized SSH keys
   ansible.posix.authorized_key:
     user: "{{ item.name }}"
@@ -1403,13 +1861,11 @@ slurm_repo_gpgcheck: "{{ slurm_mirror.gpgcheck | default(0) }}"
   loop: "{{ common_users | selectattr('authorized_key','defined') }}"
   when: item.authorized_key | length > 0
 
-# 4. Install baseline packages
 - name: Ensure baseline packages installed
   ansible.builtin.package:
     name: "{{ common_packages }}"
     state: present
 
-# 5. Apply sysctl settings
 - name: Apply sysctl defaults
   ansible.posix.sysctl:
     name: "{{ item.key }}"
@@ -1418,7 +1874,6 @@ slurm_repo_gpgcheck: "{{ slurm_mirror.gpgcheck | default(0) }}"
     reload: yes
   loop: "{{ common_sysctl | dict2items }}"
 
-# 6. Apply PAM limits
 - name: Apply ulimit settings
   community.general.pam_limits:
     domain: "{{ item.domain }}"
@@ -1435,15 +1890,7 @@ common_groups:
     system: true
 
 common_packages:
-  - vim
-  - git
-  - curl
-  - net-tools
   - python3
-  - python3-devel
-  - python3-pip
-  - rsync
-  - tmux
 
 common_users:
   - name: ansible
@@ -1451,134 +1898,48 @@ common_users:
     shell: /bin/bash
     authorized_key: "{{ lookup('file', '~/.ssh/id_ed25519.pub', errors='ignore') }}"
 
-common_sysctl:
-  vm.swappiness: 10
-  net.ipv4.ip_forward: 1
-
-common_limits:
-  - domain: "*"
-    type: "soft"
-    item: "nofile"
-    value: 65535
-  - domain: "*"
-    type: "hard"
-    item: "nofile"
-    value: 65535
-
 server_ip: "{{ network_config.server_ip }}"
 slurm_repo_gpgcheck: "{{ slurm_mirror.gpgcheck | default(0) }}"
 
 
 ===== ./roles/compute_common/tasks/main.yml =====
 ---
-# 0. Create required groups FIRST
 - name: Ensure cluster groups exist
   ansible.builtin.group:
     name: "{{ item.name }}"
     state: present
     system: "{{ item.system | default(true) }}"
   loop: "{{ common_groups }}"
-  tags:
-    - common
-    - users
 
-# 1. Create cluster users
-- name: Create cluster users
+- name: Create automation users
   ansible.builtin.user:
     name: "{{ item.name }}"
     groups: "{{ item.groups | default([]) }}"
     shell: "{{ item.shell | default('/bin/bash') }}"
     state: present
   loop: "{{ common_users }}"
-  tags:
-    - common
-    - users
 
-# 2. Allow passwordless sudo for automation user
-- name: Allow passwordless sudo for automation user
+- name: Configure passwordless sudo for automation user
   ansible.builtin.copy:
     dest: /etc/sudoers.d/99-ansible-nopasswd
     content: "ansible ALL=(ALL) NOPASSWD:ALL\n"
     owner: root
     group: root
     mode: '0440'
-  tags:
-    - common
-    - sudo
 
-# 3. Install authorized SSH keys (NOW VALID)
-- name: Install authorized SSH keys
+- name: Install controller public key for automation user
   ansible.posix.authorized_key:
     user: "{{ item.name }}"
     key: "{{ item.authorized_key }}"
     state: present
   loop: "{{ common_users | selectattr('authorized_key','defined') }}"
   when: item.authorized_key | length > 0
-  tags:
-    - common
-    - users
 
-# 4. Deploy internal repo file
-- name: Deploy internal cluster repo configuration
-  ansible.builtin.template:
-    src: local.repo.j2
-    dest: /etc/yum.repos.d/cluster.repo
-    owner: root
-    group: root
-    mode: '0644'
-  vars:
-    controller_ip: "{{ hostvars[groups['controller'][0]].ip }}"
-  when: "'controller' not in group_names"
-  tags:
-    - repo
-
-# 5. Rebuild yum metadata
-- name: Clean DNF metadata
-  ansible.builtin.command: dnf clean all
-  changed_when: false
-  when: "'controller' not in group_names"
-  tags:
-    - repo
-
-- name: Rebuild DNF metadata cache
-  ansible.builtin.command: dnf makecache
-  changed_when: false
-  when: "'controller' not in group_names"
-  tags:
-    - repo
-
-# 6. Install baseline packages
-- name: Ensure baseline packages installed
+- name: Ensure Python present for Ansible
   ansible.builtin.package:
     name: "{{ common_packages }}"
     state: present
-  tags:
-    - common
-    - bootstrap
-
-# 7. Apply sysctl settings
-- name: Apply sysctl defaults
-  ansible.posix.sysctl:
-    name: "{{ item.key }}"
-    value: "{{ item.value }}"
-    state: present
-    reload: yes
-  loop: "{{ common_sysctl | dict2items }}"
-  tags:
-    - common
-    - sysctl
-
-# 8. Apply PAM limits
-- name: Apply ulimit settings
-  community.general.pam_limits:
-    domain: "{{ item.domain }}"
-    limit_type: "{{ item.type }}"
-    limit_item: "{{ item.item }}"
-    value: "{{ item.value }}"
-  loop: "{{ common_limits }}"
-  tags:
-    - common
-    - limits
+  when: common_packages | length > 0
 
 
 ===== ./roles/validation/templates/pavilion.yaml.j2 =====
@@ -1614,6 +1975,13 @@ validation_pavilion:
   # Pavilion git repo (LANL public).
   repo_url: "https://github.com/lanl/Pavilion2.git"
   repo_version: "main"
+  bootstrap_packages:
+    - pip==24.0
+    - setuptools==69.0.3
+    - wheel==0.42.0
+  venv_path: "{{ validation_pavilion.install_dir }}/venv"
+  venv_python: "{{ validation_pavilion.install_dir }}/venv/bin/python"
+  venv_pip: "{{ validation_pavilion.install_dir }}/venv/bin/pip"
 
   # Which Pavilion suite (file prefix) to execute by default.
   default_suite: "controller_smoke"
@@ -1830,7 +2198,7 @@ See https://github.com/lanl/Pavilion2 for full license text.
 ---
 - name: Ensure Pavilion OS dependencies are present
   ansible.builtin.package:
-    name: # should already be present
+    name:
       - git
       - python3
       - python3-pip
@@ -1857,25 +2225,22 @@ See https://github.com/lanl/Pavilion2 for full license text.
     mode: "0775"
 
 - name: Ensure Pavilion virtualenv exists
-  ansible.builtin.command: python3 -m venv venv
+  ansible.builtin.command:
+    cmd: "python3 -m venv {{ validation_pavilion.venv_path }}"
   args:
-    chdir: "{{ validation_pavilion.install_dir }}"
-    creates: "{{ validation_pavilion.install_dir }}/venv/bin/activate"
+    creates: "{{ validation_pavilion.venv_path }}/bin/activate"
 
 - name: Upgrade pip tooling inside Pavilion virtualenv
-  ansible.builtin.pip: # todo: figure out how to import dyanamic list so I dont need to hard code
-    name:
-      - pip==24.0
-      - setuptools==69.0.3
-      - wheel==0.42.0
-    state: present # todo: 'latest' throws an error so this is current solution
-    virtualenv: "{{ validation_pavilion.install_dir }}/venv"
+  ansible.builtin.pip:
+    name: "{{ validation_pavilion.bootstrap_packages }}"
+    state: present
+    virtualenv: "{{ validation_pavilion.venv_path }}"
     virtualenv_command: python3 -m venv
 
 - name: Install Pavilion Python dependencies
   ansible.builtin.pip:
     requirements: requirements.txt
-    virtualenv: "{{ validation_pavilion.install_dir }}/venv"
+    virtualenv: "{{ validation_pavilion.venv_path }}"
     virtualenv_command: python3 -m venv
   args:
     chdir: "{{ validation_pavilion.install_dir }}"
@@ -1896,7 +2261,7 @@ See https://github.com/lanl/Pavilion2 for full license text.
     dest: "{{ validation_pavilion.config_dir }}/pavilion.yaml"
     mode: "0644"
 
-- name: Copy Pavilion suites ... # TODO: need to implement
+- name: Copy Pavilion suites ...
   ansible.builtin.copy:
     dest: "{{ validation_pavilion.config_dir }}/{{ item.dest }}"
     content: "{{ lookup('template', role_path ~ '/' ~ item.src) }}"
@@ -2760,10 +3125,10 @@ dependencies: []
 ---
 - name: Controller
   block:
-    # - import_tasks: venv.yml ; using dev venv for now for testing
-    #   tags:
-    #     - venv
-    #     - controller
+    - import_tasks: venv.yml
+      tags:
+        - venv
+        - controller
     - import_tasks: hostname.yml
       tags:
         - hostname

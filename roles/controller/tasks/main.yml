@@ -1,10 +1,10 @@
 ---
 - name: Controller
   block:
-    # - import_tasks: venv.yml ; using dev venv for now for testing
-    #   tags:
-    #     - venv
-    #     - controller
+    - import_tasks: venv.yml
+      tags:
+        - venv
+        - controller
     - import_tasks: hostname.yml
       tags:
         - hostname

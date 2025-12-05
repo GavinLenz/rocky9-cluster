@@ -8,12 +8,17 @@ the top-level contract for how the system is stitched together.
 
 ## 1. Physical And Logical Topology
 
-| Role       | Hostname | CPU / RAM                  | Notes                                |
-| ---------- | -------- | -------------------------- | ------------------------------------ |
-| Controller | head     | Ryzen 7 PRO 4750U  / 16 GB | Runs PXE, Slurmctld, Apache, DNSMasq |
-| Compute    | node01   | Ryzen 6800H / 24 GB        | Slurmd + Pavilion workers            |
-| Compute    | node02   | Ryzen 6800H / 24 GB        | Slurmd + Pavilion workers            |
-| Compute    | node03   | Ryzen 6800H / 24 GB        | Slurmd + Pavilion workers            |
+| Role       | Hostname | CPU / RAM                  | Notes                                      |
+| ---------- | -------- | -------------------------- | ------------------------------------------ |
+| Controller | head     | Ryzen 7 PRO 4750U  / 16 GB | Runs PXE, Apache, dnsmasq, Pavilion        |
+| Compute    | node01   | Ryzen 6800H / 24 GB        | Netboot target, ready for future workloads |
+| Compute    | node02   | Ryzen 6800H / 24 GB        | Netboot target, ready for future workloads |
+| Compute    | node03   | Ryzen 6800H / 24 GB        | Netboot target, ready for future workloads |
+
+Hardware is intentionally pragmatic: an old laptop serves as the controller and three
+refurbished gaming laptops provide compute. Networking stays simple—Cat6e cables into
+a 2.5 GbE switch and a flat `/24` LAN. Keep hardware notes in this file so topology,
+firmware updates, or replacements are tracked alongside the architectural intent.
 
 * Interfaces are hard-wired to a single flat `/24` (10.0.0.0/24) switch. No routing,
   no DHCP from upstream. The controller’s `enp5s0` is authoritative for DHCP, PXE,
@@ -31,17 +36,18 @@ the top-level contract for how the system is stitched together.
 3. **Dynamic Inventory**: `inventory/generator.py` reads `config/*.yml` + `.env`
    secrets to emit `inventory/inventory.json`. That file is the single source of truth
    for hostvars, PXE metadata, and credentials.
-4. **Ansible Roles**: `make controller|compute` ties together the role stack:
-   `common` → `pxe` → `controller/scheduler`. Tags are minimal; roles assume a clean
-   environment and enforce idempotence themselves.
-5. **Validation**: Pavilion installs on the controller and fans Slurm-based smoke
-   tests across the cluster.
+4. **Ansible Roles**: `make controller` runs `controller_common → controller → pxe`.
+   `make compute` currently runs only `compute_common`, which seeds SSH access and
+   Python so future workloads can be layered in. Re-running the targets is safe.
+5. **Validation**: Pavilion installs on the controller and runs raw-scheduler smoke
+   tests that exercise PXE services, firewall state, and repo mirrors locally before
+   compute hosts come online.
 
 
 ### Role Stack Per Host
 
-- **Controller**: `common → pxe → controller → scheduler`
-- **Compute**: `common → scheduler`
+- **Controller**: `controller_common → controller → pxe`
+- **Compute**: `compute_common` (SSH + Python bootstrap today; future scheduler TBD)
 
 ## 3. Network Contracts
 
@@ -62,4 +68,3 @@ This architecture intentionally avoids hidden state. If you need to change any
 boundary (new subnet or more nodes), update `config/*.yml`, rerun `make inv`, and then
 reapply the relevant playbooks. If you later add clustered file services, revisit the
 inventory, roles, and firewall expectations.
-
