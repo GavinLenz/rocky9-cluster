@@ -3,7 +3,6 @@
   hosts: controller
   become: true
   gather_facts: false
-
   roles:
     - role: validation
       tags:

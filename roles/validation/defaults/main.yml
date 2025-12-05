@@ -15,6 +15,5 @@ validation_pavilion:
   repo_url: "https://github.com/lanl/Pavilion2.git"
   repo_version: "main"
 
-  # Slurm default partition/account used by tests.
-  slurm_partition: "debug"
-  slurm_account: ""
+  # Which Pavilion suite (file prefix) to execute by default.
+  default_suite: "controller_smoke"

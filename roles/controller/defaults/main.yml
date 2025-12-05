@@ -13,21 +13,23 @@ cluster_description: "{{ cluster_description | default('High-performance cluster
 # Python / Virtual Environment
 python_version: "3.9"
 python_executable: "/usr/bin/python3"
+python_system_packages:
+  - python3
+  - python3-devel
 venv_path: "{{ cluster_repo_root }}/.venv"
 venv_bin: "{{ venv_path }}/bin"
 venv_python: "{{ venv_bin }}/python"
 venv_pip: "{{ venv_bin }}/pip"
 venv_ansible: "{{ venv_bin }}/ansible"
 
-venv_packages:
-  - PyYAML
-  - rich
-  - passlib
+venv_bootstrap_packages:
+  - pip==24.0
+  - setuptools==69.0.3
+  - wheel==0.42.0
 
-ansible_collections:
-  - ansible.posix
-  - community.general
-ansible_core_package: "ansible-core==2.15.8"
+controller_requirements_file: "{{ cluster_repo_root }}/requirements/controller.txt"
+ansible_collections_requirements: "{{ cluster_repo_root }}/requirements/requirements.yml"
+ansible_core_expected_version: "2.15.8"  # Keep in sync with requirements/controller.txt
 
 # Controller Identity
 controller_user: "{{ ansible_user | default('ansible') }}"
@@ -38,7 +40,7 @@ controller_hostname: "{{ inventory_hostname }}"
 # Networking (from network_config in inventory)
 controller_interface: "{{ network_config.pxe_iface }}"
 controller_ip: "{{ network_config.server_ip }}"
-controller_gateway: "{{ network_config.gateway }}"
+controller_gateway: "{{ network_config.gateway | default(network_config.server_ip, true) }}"
 controller_dns: "{{ network_config.dns }}"
 controller_subnet: "{{ network_config.subnet }}"
 controller_dhcp_range_start: "{{ network_config.dhcp_range.start }}"

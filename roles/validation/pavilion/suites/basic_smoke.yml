@@ -1,15 +1,12 @@
 ---
-network_ping:
-  summary: "Network smoke: ping controller from compute nodes"
-  scheduler: slurm
-  schedule:
-    nodes: 1
-    tasks_per_node: 1
+network_gateway_ping:
+  summary: "Controller can reach the configured gateway"
+  scheduler: raw
   run:
     cmds:
       - |
         set -eu
-        ping -c 4 {{ network_config.server_ip }}
+        ping -c 4 {{ network_config.gateway | default(network_config.server_ip, true) }}
   result_parse:
     regex:
       regex: '(\d+) packets transmitted, (\d+) received'
@@ -20,24 +17,44 @@ network_ping:
       result: "PASS"
       fail_result: "FAIL"
 
-slurm_basic:
-  summary: "Slurm smoke: verify job runs under sbatch"
-  scheduler: slurm
-  slurm:
-    sbatch: true
-    time: "00:01:00"
-    nodes: 1
+pxe_tree_check:
+  summary: "PXE ISO tree is mounted under /var/www/html/os"
+  scheduler: raw
   run:
     cmds:
       - |
-        echo "slurm_ok" > out.txt
-        echo "SLURM_OK=1"
+        set -eu
+        if [[ -f /var/www/html/os/BaseOS/repodata/repomd.xml ]]; then
+          echo "PXE_TREE=present"
+        else
+          echo "PXE_TREE=missing"
+          exit 1
+        fi
   result_parse:
     regex:
-      regex: '^SLURM_OK=(?P<value>\d+)$'
+      regex: '^PXE_TREE=(?P<state>\w+)$'
       matches: one
   result_evaluate:
     ok:
-      formula: "result.regex.value == '1'"
+      formula: "result.regex.state == 'present'"
+      result: "PASS"
+      fail_result: "FAIL"
+
+pxe_http_probe:
+  summary: "PXE content is served over HTTP"
+  scheduler: raw
+  run:
+    cmds:
+      - |
+        set -eu
+        curl -sfI "http://{{ network_config.server_ip }}/os/" >/dev/null
+        echo "PXE_HTTP=ok"
+  result_parse:
+    regex:
+      regex: '^PXE_HTTP=(?P<state>\w+)$'
+      matches: one
+  result_evaluate:
+    ok:
+      formula: "result.regex.state == 'ok'"
       result: "PASS"
       fail_result: "FAIL"

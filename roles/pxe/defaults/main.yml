@@ -11,6 +11,7 @@ pxe:
   iso_dir: "{{ pxe_config.paths.iso_dir }}"
   iso_mount: "{{ pxe_config.paths.iso_mount }}"
   iso_path: "{{ pxe_config.paths.iso_dir }}/{{ images[pxe_config.image | default('rocky9_minimal')].name | default(pxe_config.image ~ '.iso') }}"
+  iso_url: "{{ images[pxe.image | default('rocky9_minimal')].url | default('') }}"
 
   # Networking
   boot_interface: "{{ network_config.pxe_iface }}"

@@ -1,71 +1,74 @@
 ---
-- name: Ensure Python 3.9 installed
+- name: Ensure Python runtime packages present
   ansible.builtin.package:
-    name:
-      - python3
-      - python3-devel
+    name: "{{ python_system_packages }}"
     state: present
   tags: venv
 
 - name: Verify Python 3 binary exists
   ansible.builtin.stat:
-    path: /usr/bin/python3
+    path: "{{ python_executable }}"
   register: python_bin
   failed_when: not python_bin.stat.exists
   tags: venv
 
+- name: Validate Python version matches {{ python_version }}
+  ansible.builtin.command:
+    cmd: "{{ python_executable }} --version"
+  register: python_version_check
+  changed_when: false
+  failed_when: "'Python {{ python_version }}' not in ((python_version_check.stdout | default('')) ~ (python_version_check.stderr | default('')))"
+  tags: venv
+
 - name: Ensure virtual environment directory exists
   ansible.builtin.file:
-    path: "{{ cluster_repo_root }}/.venv"
+    path: "{{ venv_path }}"
     state: directory
     mode: '0755'
   tags: venv
 
 - name: Create Python virtual environment (idempotent)
   ansible.builtin.command:
-    cmd: "{{ python_executable }} -m venv {{ cluster_repo_root }}/.venv"
+    cmd: "{{ python_executable }} -m venv {{ venv_path }}"
   args:
-    creates: "{{ cluster_repo_root }}/.venv/bin/activate"
+    creates: "{{ venv_path }}/bin/activate"
   tags: venv
 
 - name: Upgrade pip and core tooling inside venv
-  ansible.builtin.pip: # todo: figure out how to import dyanamic list so I dont need to hard code
-    name:
-      - pip==24.0
-      - setuptools==69.0.3
-      - wheel==0.42.0
-    state: present # todo: 'latest' throws an error so this is current solution
+  ansible.builtin.pip:
+    name: "{{ venv_bootstrap_packages }}"
+    state: present
     virtualenv: "{{ venv_path }}"
     virtualenv_command: "{{ python_executable }} -m venv"
   tags: venv
 
-- name: Install cluster dependencies inside venv
+- name: Install controller dependencies inside venv
   ansible.builtin.pip:
-    name: "{{ venv_packages + [ansible_core_package] }}"
+    requirements: "{{ controller_requirements_file }}"
     virtualenv: "{{ venv_path }}"
     virtualenv_command: "{{ python_executable }} -m venv"
   tags: venv
 
 - name: Install required Ansible collections
-  ansible.builtin.command:
-    cmd: >-
-      "{{ cluster_repo_root }}/.venv/bin/ansible-galaxy collection install
-      {{ ansible_collections | join(' ') }}"
-  args:
-    chdir: "{{ cluster_repo_root }}"
-  changed_when: false
+  community.general.ansible_galaxy_install:
+    type: collection
+    requirements_file: "{{ ansible_collections_requirements }}"
+    state: latest
+  environment:
+    PATH: "{{ venv_bin }}:{{ ansible_env.PATH | default('/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin') }}"
   tags: venv
 
 - name: Verify Ansible installation inside venv
   ansible.builtin.command:
-    cmd: "{{ cluster_repo_root }}/.venv/bin/ansible --version"
+    cmd: "{{ venv_ansible }} --version"
   register: ansible_check
   changed_when: false
+  failed_when: "'[core {{ ansible_core_expected_version }}]' not in ansible_check.stdout"
   tags: venv
 
 - name: Print venv activation hint
   ansible.builtin.debug:
     msg: |
       Virtualenv ready:
-        source {{ cluster_repo_root }}/.venv/bin/activate
+        source {{ venv_path }}/bin/activate
   tags: venv

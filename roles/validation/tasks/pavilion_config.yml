@@ -18,8 +18,8 @@
     content: "{{ lookup('template', role_path ~ '/' ~ item.src) }}"
     mode: "0644"
   loop:
-    - { src: "pavilion/suites/hpc_smoke.yml",
-        dest: "suites/hpc_smoke.yml" }
+    - { src: "pavilion/suites/controller_smoke.yml",
+        dest: "suites/controller_smoke.yml" }
     - { src: "pavilion/suites/basic_smoke.yml",
         dest: "suites/basic_smoke.yml" }
     - { src: "pavilion/hosts/cluster.yml",
