@@ -21,9 +21,7 @@ PLAYBOOK_DIR := playbooks
 PLAYBOOK_CONTROLLER := $(PLAYBOOK_DIR)/controller.yml
 PLAYBOOK_COMPUTE := $(PLAYBOOK_DIR)/compute.yml
 PLAYBOOK_PXE := $(PLAYBOOK_DIR)/pxe.yml
-PLAYBOOK_SCHEDULER := $(PLAYBOOK_DIR)/scheduler.yml
 PLAYBOOK_VALIDATION := $(PLAYBOOK_DIR)/validation.yml
-PLAYBOOK_SLURM := $(PLAYBOOK_DIR)/slurm.yml
 
 .PHONY: help hashes inv inv-show inv-clean dev-venv venv-check lint format clean controller compute pxe scheduler validate site
 
@@ -58,7 +56,7 @@ inv-clean: ## Remove cached inventory and Ansible fact cache
 	@rm -rf $(INV_JSON) $(CACHE_DIR)
 	@echo "[CLEAN] Inventory cache removed."
 
-venv: ## Create and initialize Python virtual environment
+dev-venv: ## Create and initialize Python virtual environment
 	@chmod +x scripts/dev_venv.sh
 	@sudo scripts/dev_venv.sh
 	@echo "[OK] Virtual environment ready."
@@ -94,11 +92,5 @@ compute: inv ## Run compute playbook (common + scheduler)
 pxe: inv ## Run PXE-only playbook
 	@$(ANSIBLE_PLAYBOOK) -i $(INV_JSON) $(PLAYBOOK_PXE)
 
-scheduler: inv ## Run scheduler-only playbook
-	@$(ANSIBLE_PLAYBOOK) -i $(INV_JSON) $(PLAYBOOK_SCHEDULER)
-
 validate: inv ## Run validation playbook on controller
 	@$(ANSIBLE_PLAYBOOK) -i $(INV_JSON) $(PLAYBOOK_VALIDATION)
-
-slurm: inv ## Run slurm playbook on controller
-	@$(ANSIBLE_PLAYBOOK) -i $(INV_JSON) $(PLAYBOOK_SLURM)
