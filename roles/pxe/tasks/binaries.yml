@@ -2,12 +2,12 @@
 - name: Stage iPXE binaries
   ansible.builtin.copy:
     src: "{{ item.src }}"
-    dest: "{{ pxe.tftp_root }}/{{ item.dest }}"
+    dest: "{{ pxe_settings.tftp_root }}/{{ item.dest }}"
     remote_src: true
     owner: root
     group: root
     mode: '0644'
   loop:
-    - src: "{{ pxe.uefi_src }}"
-      dest: "{{ pxe.uefi_name }}"
+    - src: "{{ pxe_settings.uefi_src }}"
+      dest: "{{ pxe_settings.uefi_name }}"
   when: not ansible_check_mode

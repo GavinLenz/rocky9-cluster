@@ -5,7 +5,12 @@ PYTHON ?= $(if $(VIRTUAL_ENV),$(VIRTUAL_ENV)/bin/python3,$(if $(wildcard .venv/b
 PIP := $(PYTHON) -m pip
 ANSIBLE_CMD ?= ANSIBLE_NOCOWS=1 ansible-playbook
 ANSIBLE_ARGS ?= -vv
-ANSIBLE_PLAYBOOK := $(ANSIBLE_CMD) $(ANSIBLE_ARGS)
+ASK_BECOME_PASS ?=
+ANSIBLE_EXTRA_ARGS :=
+ifneq ($(strip $(ASK_BECOME_PASS)),)
+ANSIBLE_EXTRA_ARGS += --ask-become-pass
+endif
+ANSIBLE_PLAYBOOK := $(ANSIBLE_CMD) $(ANSIBLE_ARGS) $(ANSIBLE_EXTRA_ARGS)
 INV_CACHE_DIR := .ansible_cache
 CACHE_DIRS := $(INV_CACHE_DIR) .pytest_cache .mypy_cache .ruff_cache
 

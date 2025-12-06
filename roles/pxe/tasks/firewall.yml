@@ -55,7 +55,7 @@
     permanent: yes
 
 # Allow inbound subnets defined in defaults
-# (see firewall_allowed_subnets in defaults/main.yml)
+# (see pxe_firewall_allowed_subnets in defaults/main.yml)
 - name: Allow cluster internal networks
   ansible.posix.firewalld:
     source: "{{ item }}"

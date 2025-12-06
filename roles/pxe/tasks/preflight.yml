@@ -1,6 +1,6 @@
 ---
 - name: Install PXE server packages
-  package:
+  ansible.builtin.package:
     name:
       - dnsmasq
       - tftp-server
@@ -13,17 +13,17 @@
 - name: Ensure PXE credential hashes are provided
   ansible.builtin.assert:
     that:
-      - pxe.root_password_hash is defined
-      - pxe.root_password_hash | length > 0
-      - pxe.local_user_password_hash is defined
-      - pxe.local_user_password_hash | length > 0
+      - pxe_settings.root_password_hash is defined
+      - pxe_settings.root_password_hash | length > 0
+      - pxe_settings.local_user_password_hash is defined
+      - pxe_settings.local_user_password_hash | length > 0
     fail_msg: >-
       PXE credential hashes missing.
       Populate PXE_ROOT_PASSWORD_HASH and PXE_LOCAL_USER_PASSWORD_HASH.
 
 - name: Ensure TFTP directory exists
-  file:
-    path: "{{ pxe.tftp_root }}"
+  ansible.builtin.file:
+    path: "{{ pxe_settings.tftp_root }}"
     state: directory
     owner: root
     group: root
@@ -31,7 +31,7 @@
 
 - name: Label TFTP directory for SELinux
   community.general.sefcontext:
-    target: "{{ pxe.tftp_root }}(/.*)?"
+    target: "{{ pxe_settings.tftp_root }}(/.*)?"
     setype: tftpdir_t
     state: present
   when:
@@ -39,7 +39,7 @@
     - ansible_selinux.status == "enabled"
 
 - name: Restore SELinux context on TFTP directory
-  ansible.builtin.command: restorecon -Fr {{ pxe.tftp_root }}
+  ansible.builtin.command: restorecon -Fr {{ pxe_settings.tftp_root }}
   changed_when: false
   when:
     - ansible_selinux is defined
@@ -47,36 +47,36 @@
 
 - name: Ensure ISO directory exists
   ansible.builtin.file:
-    path: "{{ pxe.iso_dir }}"
+    path: "{{ pxe_settings.iso_dir }}"
     state: directory
     mode: "0755"
 
 - name: Ensure ISO mount directory exists
   ansible.builtin.file:
-    path: "{{ pxe.iso_mount }}"
+    path: "{{ pxe_settings.iso_mount }}"
     state: directory
     mode: "0755"
 
 - name: Check PXE interface exists
   ansible.builtin.stat:
-    path: "/sys/class/net/{{ pxe.boot_interface }}"
+    path: "/sys/class/net/{{ pxe_settings.boot_interface }}"
   register: pxe_iface_stat
   when:
-    - pxe.boot_interface is defined
-    - pxe.boot_interface | length > 0
+    - pxe_settings.boot_interface is defined
+    - pxe_settings.boot_interface | length > 0
 
 - name: Assert PXE interface is present
   ansible.builtin.assert:
     that:
       - pxe_iface_stat.stat.exists | default(false)
     fail_msg: >-
-      PXE interface {{ pxe.boot_interface }} missing. Update network_config.pxe_iface
+      PXE interface {{ pxe_settings.boot_interface }} missing. Update network_config.pxe_iface
       in config/net.yml to a valid interface name on this host.
   when:
     - pxe_iface_stat is defined
 
 - name: Bring PXE interface up (best effort)
-  ansible.builtin.command: ip link set dev {{ pxe.boot_interface }} up
+  ansible.builtin.command: ip link set dev {{ pxe_settings.boot_interface }} up
   changed_when: false
   failed_when: false
   when:
@@ -86,9 +86,9 @@
 - name: Assert PXE server IP is configured locally
   ansible.builtin.assert:
     that:
-      - pxe.server_ip in ansible_all_ipv4_addresses
+      - pxe_settings.server_ip in ansible_all_ipv4_addresses
     fail_msg: >-
-      PXE server_ip {{ pxe.server_ip }} is not assigned on this host. Ensure
+      PXE server_ip {{ pxe_settings.server_ip }} is not assigned on this host. Ensure
       network_config.server_ip in config/net.yml matches an address on this
       machine (and that the interface is up) before starting dnsmasq.
 

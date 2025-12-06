@@ -2,34 +2,36 @@
 # These are derived from the top-level inventory vars:
 
 # Repository Paths
-cluster_repo_root: "{{ cluster_repo_root }}"
-cluster_config_root: "{{ cluster_config_root }}"
-cluster_meta_root: "{{ cluster_meta_root }}"
+controller_cluster_repo_root: "{{ cluster_repo_root }}"
+controller_cluster_config_root: "{{ cluster_config_root }}"
+controller_cluster_meta_root: "{{ cluster_meta_root }}"
 
 # Core Cluster Metadata
-cluster_name: "{{ cluster_name | default('cluster') }}"
-cluster_description: "{{ cluster_description | default('High-performance cluster controller') }}"
+controller_cluster_name: "{{ cluster_name | default('cluster') }}"
+controller_cluster_description: >-
+  {{ cluster_description | default('High-performance cluster controller') }}
 
 # Python / Virtual Environment
-python_version: "3.9"
-python_executable: "/usr/bin/python3"
-python_system_packages:
+controller_python_version: "3.9"
+controller_python_executable: "/usr/bin/python3"
+controller_python_system_packages:
   - python3
   - python3-devel
-venv_path: "{{ cluster_repo_root }}/.venv"
-venv_bin: "{{ venv_path }}/bin"
-venv_python: "{{ venv_bin }}/python"
-venv_pip: "{{ venv_bin }}/pip"
-venv_ansible: "{{ venv_bin }}/ansible"
+controller_venv_path: "{{ controller_cluster_repo_root }}/.venv"
+controller_venv_bin: "{{ controller_venv_path }}/bin"
+controller_venv_python: "{{ controller_venv_bin }}/python"
+controller_venv_pip: "{{ controller_venv_bin }}/pip"
+controller_venv_ansible: "{{ controller_venv_bin }}/ansible"
 
-venv_bootstrap_packages:
+controller_venv_bootstrap_packages:
   - pip==24.0
   - setuptools==69.0.3
   - wheel==0.42.0
 
-controller_requirements_file: "{{ cluster_repo_root }}/requirements/controller.txt"
-ansible_collections_requirements: "{{ cluster_repo_root }}/requirements/requirements.yml"
-ansible_core_expected_version: "2.15.8"  # Keep in sync with requirements/controller.txt
+controller_requirements_file: "{{ controller_cluster_repo_root }}/requirements/controller.txt"
+controller_ansible_collections_requirements: >-
+  {{ controller_cluster_repo_root }}/requirements/requirements.yml
+controller_ansible_core_expected_version: "2.15.8"  # Keep in sync with requirements/controller.txt
 
 # Controller Identity
 controller_user: "{{ ansible_user | default('ansible') }}"
@@ -46,6 +48,6 @@ controller_subnet: "{{ network_config.subnet }}"
 controller_dhcp_range_start: "{{ network_config.dhcp_range.start }}"
 controller_dhcp_range_end: "{{ network_config.dhcp_range.end }}"
 
-# PXE Integration
-pxe_install_drive: "{{ pxe_config.install.drive | default('nvme0n1') }}"
-pxe_default_target: "{{ pxe_config.ipxe.default_target | default('local') }}"
+# PXE Integration (exposed via inventory already; keep for compatibility)
+controller_pxe_install_drive: "{{ pxe_config.install.drive | default('nvme0n1') }}"
+controller_pxe_default_target: "{{ pxe_config.ipxe.default_target | default('local') }}"

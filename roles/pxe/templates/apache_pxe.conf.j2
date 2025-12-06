@@ -1,7 +1,7 @@
 # Hardened template for apache
-Alias /os "{{ pxe.http_root }}/os"
+Alias /os "{{ pxe_settings.http_root }}/os"
 
-<Directory "{{ pxe.http_root }}/os">
+<Directory "{{ pxe_settings.http_root }}/os">
     Options +Indexes
     AllowOverride None
     Require all granted

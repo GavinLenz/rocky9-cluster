@@ -1,7 +1,7 @@
 # Cluster PXE and DHCP configuration
 
 port=0
-listen-address={{ pxe.server_ip }}
+listen-address={{ pxe_settings.server_ip }}
 # Bind dynamically so interface flaps don't kill the daemon; scope to our IP
 bind-dynamic
 except-interface=lo
@@ -9,9 +9,9 @@ log-dhcp
 dhcp-authoritative
 
 # DHCP range and options (from config/net.yml)
-dhcp-range={{ pxe.dhcp_range_start }},{{ pxe.dhcp_range_end }},{{ pxe.dhcp_netmask }},12h
-dhcp-option=3,{{ pxe.gateway }}
-dhcp-option=6,{{ pxe.dns }}
+dhcp-range={{ pxe_settings.dhcp_range_start }},{{ pxe_settings.dhcp_range_end }},{{ pxe_settings.dhcp_netmask }},12h
+dhcp-option=3,{{ pxe_settings.gateway }}
+dhcp-option=6,{{ pxe_settings.dns }}
 
 # Static host reservations (from inventory)
 {% for group in ['compute'] %}
@@ -34,14 +34,14 @@ dhcp-match=set:efi64,option:client-arch,11
 dhcp-match=set:efi64,option:client-arch,12
 
 # Boot logic
-dhcp-boot=tag:ipxe,http://{{ pxe.server_ip }}/boot.ipxe
-dhcp-boot=tag:efi64,tag:!ipxe,{{ pxe.uefi_name }}
+dhcp-boot=tag:ipxe,http://{{ pxe_settings.server_ip }}/boot.ipxe
+dhcp-boot=tag:efi64,tag:!ipxe,{{ pxe_settings.uefi_name }}
 dhcp-boot=tag:!efi64,tag:!ipxe,undionly.kpxe
 
 # Enable TFTP service
 enable-tftp
-tftp-root={{ pxe.tftp_root | default('/srv/tftp') }}
+tftp-root={{ pxe_settings.tftp_root | default('/srv/tftp') }}
 
 # PXE menu text and timeout
-pxe-service=BC_EFI, "Network Boot (UEFI)", {{ pxe.uefi_name }}
-pxe-prompt="Booting cluster installation...",{{ pxe.timeout_ms }}
+pxe-service=BC_EFI, "Network Boot (UEFI)", {{ pxe_settings.uefi_name }}
+pxe-prompt="Booting cluster installation...",{{ pxe_settings.timeout_ms }}

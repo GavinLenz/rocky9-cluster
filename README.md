@@ -55,6 +55,9 @@ responsibilities.
    make compute      # compute_common on each compute host (once they netboot)
    make validate     # optional Pavilion install + controller smoke tests
    ```
+   Need a one-time sudo password without saving it in `.env`? Append
+   `ASK_BECOME_PASS=1` to any target (e.g., `ASK_BECOME_PASS=1 make controller`)
+   to have Ansible prompt interactively.
 
 Every target reruns the dynamic inventory; no static inventory file is committed.
 

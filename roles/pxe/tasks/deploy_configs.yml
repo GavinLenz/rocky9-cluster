@@ -23,7 +23,7 @@
 - name: Deploy iPXE boot script to TFTP root
   ansible.builtin.template:
     src: boot.ipxe.j2
-    dest: "{{ pxe.tftp_root }}/boot.ipxe"
+    dest: "{{ pxe_settings.tftp_root }}/boot.ipxe"
     owner: root
     group: root
     mode: '0644'
@@ -35,7 +35,7 @@
 - name: Deploy iPXE boot script to HTTP root (for http:// chainload)
   ansible.builtin.template:
     src: boot.ipxe.j2
-    dest: "{{ pxe.http_root }}/boot.ipxe"
+    dest: "{{ pxe_settings.http_root }}/boot.ipxe"
     owner: root
     group: root
     mode: '0644'
@@ -47,7 +47,7 @@
 - name: Deploy Kickstart configuration
   ansible.builtin.template:
     src: ks.cfg.j2
-    dest: "{{ pxe.http_root }}/ks.cfg"
+    dest: "{{ pxe_settings.http_root }}/ks.cfg"
     owner: root
     group: root
     mode: '0644'

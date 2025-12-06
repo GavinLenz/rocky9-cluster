@@ -118,6 +118,9 @@ make controller   # apply controller_common → controller → pxe on the contro
 make compute      # seed compute nodes with compute_common (SSH + Python)
 make validate     # install Pavilion locally and run controller smoke tests
 ```
+To avoid storing the sudo password in `.env`, append `ASK_BECOME_PASS=1`
+to any target (for example `ASK_BECOME_PASS=1 make controller`) and Ansible
+will prompt for the password interactively on the first run.
 
 All targets call `inventory/generator.py` directly; no static YAML inventory exists.
 

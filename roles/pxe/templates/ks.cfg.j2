@@ -4,17 +4,17 @@ lang en_US.UTF-8
 keyboard us
 timezone UTC --utc
 
-rootpw --iscrypted {{ pxe.root_password_hash }}
-user --name={{ pxe.username }} --groups=wheel --iscrypted --password={{ pxe.local_user_password_hash | default(pxe.root_password_hash) }}
+rootpw --iscrypted {{ pxe_settings.root_password_hash }}
+user --name={{ pxe_settings.username }} --groups=wheel --iscrypted --password={{ pxe_settings.local_user_password_hash | default(pxe_settings.root_password_hash) }}
 reboot
 
-url --url "http://{{ pxe.server_ip }}/os"
+url --url "http://{{ pxe_settings.server_ip }}/os"
 network --bootproto=dhcp
 
 firewall --enabled --service=ssh
 selinux --enforcing
 
-bootloader --location=mbr --boot-drive={{ pxe.install_drive | default('nvme0n1') }}
+bootloader --location=mbr --boot-drive={{ pxe_settings.install_drive | default('nvme0n1') }}
 clearpart --all --initlabel
 autopart --type=lvm
 
@@ -24,8 +24,8 @@ autopart --type=lvm
 
 %post
 # Enable passwordless sudo for the PXE-created user
-echo "{{ pxe.username | default('ansible') }} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/99-{{ pxe.username | default('ansible') }}-nopasswd
-chmod 0440 /etc/sudoers.d/99-{{ pxe.username | default('ansible') }}-nopasswd
+echo "{{ pxe_settings.username | default('ansible') }} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/99-{{ pxe_settings.username | default('ansible') }}-nopasswd
+chmod 0440 /etc/sudoers.d/99-{{ pxe_settings.username | default('ansible') }}-nopasswd
 
 echo "Installation complete" > /root/post.log
 %end
