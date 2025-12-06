@@ -6,6 +6,10 @@ validation via Pavilion; compute nodes stay intentionally bare so new schedulers
 application stacks can be layered later. Inventory, playbooks, and validation live in
 this repo so deployments stay deterministic.
 
+> **Status**: Work in progress. Compute nodes only receive the minimal SSH/Python bootstrap today;
+> scheduler and workload roles will be added as the control plane stabilizes. Expect breaking
+> changes until those layers are in place.
+
 ## Overview
 
 - **Topology** – One controller (“head”) with static IP `10.0.0.1`, three compute nodes
@@ -83,8 +87,6 @@ Key documentation:
 | `make validate`   | Install Pavilion and run controller smoke tests    |
 | `make lint`       | Run Black, Ruff, Yamllint, ansible-lint            |
 | `make clean`      | Remove caches, virtualenv, and temp files          |
-
-Additional playbooks (`make pxe`, `scheduler`, `slurm`) are placeholders for future work.
 
 ## Validation
 

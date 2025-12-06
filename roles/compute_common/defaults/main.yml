@@ -13,4 +13,3 @@ common_users:
     authorized_key: "{{ lookup('file', '~/.ssh/id_ed25519.pub', errors='ignore') }}"
 
 server_ip: "{{ network_config.server_ip }}"
-slurm_repo_gpgcheck: "{{ slurm_mirror.gpgcheck | default(0) }}"

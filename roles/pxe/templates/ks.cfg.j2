@@ -18,8 +18,6 @@ bootloader --location=mbr --boot-drive={{ pxe.install_drive | default('nvme0n1')
 clearpart --all --initlabel
 autopart --type=lvm
 
-repo --name="slurm-local" --baseurl=http://{{ pxe.server_ip }}/slurm
-
 %packages
 @^minimal-environment
 %end

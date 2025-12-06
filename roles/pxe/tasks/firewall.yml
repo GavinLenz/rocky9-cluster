@@ -64,8 +64,6 @@
     permanent: yes
   loop: "{{ firewall_allowed_subnets }}"
 
-# 3. HPC-relevant permitted services
-# PXE/dnsmasq/httpd allowed only on the controller
 - name: Allow PXE + provisioning services on controller
   ansible.posix.firewalld:
     service: "{{ item }}"
@@ -76,17 +74,6 @@
     - http
     - tftp
     - dhcp
-  when: inventory_hostname in groups['controller']
-
-- name: Allow Slurm scheduler ports on controller
-  ansible.posix.firewalld:
-    port: "{{ item }}"
-    state: enabled
-    zone: public
-    permanent: yes
-  loop:
-    - "6817/tcp"
-    - "6818/tcp"
   when: inventory_hostname in groups['controller']
 
 # 4. Commit firewall changes safely

@@ -58,4 +58,3 @@ controller_core_repo_map:
     - rhel-9-for-x86_64-baseos-rpms
     - rhel-9-for-x86_64-appstream-rpms
 controller_core_repo_ids: []
-slurm_repo_gpgcheck: "{{ slurm_mirror.gpgcheck | default(0) }}"

@@ -6,6 +6,6 @@ roles:
       - controller
       - pxe
 
-  compute:
+  compute: # placeholder for future scheduler/application roles
     stack:
       - compute_common
