@@ -75,7 +75,8 @@ Key documentation:
 - `docs/SETUP.md` – workstation + controller bootstrap flow (hardware/software prep)
 - `docs/ARCHITECTURE.md` – topology, control/validation flow, state surfaces
 - `docs/HOSTS.md` – controller vs compute responsibilities and troubleshooting
-- `docs/_PAV.md` – Pavilion raw-scheduler plan and suggested tests
+- `docs/DEV.md` – local workflow tips, linting gates, and review discipline
+- `docs/RESOURCES.md` – external references for Kickstart, Ansible, and validation
 
 ## Make Targets
 
@@ -86,7 +87,7 @@ Key documentation:
 | `make compute`    | Seed compute nodes with SSH user + Python          |
 | `make validate`   | Install Pavilion and run controller smoke tests    |
 | `make lint`       | Run Black, Ruff, Yamllint, ansible-lint            |
-| `make clean`      | Remove caches, virtualenv, and temp files          |
+| `make clean`      | Remove caches and temporary files                  |
 
 ## Validation
 
@@ -108,5 +109,5 @@ are healthy before onboarding compute nodes.
 - Use `make lint` before sending patches.
 - Sensitive values (`.env`, inventory artifacts) stay out of git; `.gitignore` covers them.
 
-Questions or feature ideas? Document them under `docs/THINKING.md` or raise an issue with
+Questions or feature ideas? Capture them in the docs tree or raise an issue with
 reproduction steps and inventory snippets (redacted as needed).

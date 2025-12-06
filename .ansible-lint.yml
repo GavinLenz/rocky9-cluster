@@ -1,26 +1,23 @@
 ---
 profile: min
 skip_list:
-
-- fqcn-builtins
-- fqcn[action-core]
-- no-changed-when
-- experimental
-- yaml[line-length]
-- name[missing]
-- var-naming[no-role-prefix]
-- role-name
-- args[module]
+  - fqcn-builtins
+  - fqcn[action-core]
+  - no-changed-when
+  - experimental
+  - yaml[line-length]
+  - name[missing]
+  - var-naming[no-role-prefix]
+  - role-name
+  - args[module]
 
 warn_list:
-
-- yaml
-- formatting
-- empty-playbook
-- risky-file-permissions
+  - yaml
+  - formatting
+  - empty-playbook
+  - risky-file-permissions
 
 exclude_paths:
-
-- meta/
-- scripts/
-- docs/
+  - meta/
+  - scripts/
+  - docs/

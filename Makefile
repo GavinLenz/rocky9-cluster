@@ -36,7 +36,7 @@ help: ## Show available targets grouped by phase
 	@echo "== Ansible =="
 	@awk -F':.*## ' '/^[a-zA-Z0-9_.-]+:.*##/ && /controller|compute|pxe|validate/ { printf "  %-22s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 
-clean: ## Remove caches, venv, and temporary files
+clean: ## Remove caches and temporary files
 	@echo "[CLEAN] Removing caches and temporary files..."
 	@rm -rf $(CACHE_DIRS)
 	@find . -type d -name "__pycache__" -exec rm -rf {} +

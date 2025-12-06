@@ -14,9 +14,9 @@ The development environment is configured for repeatable Ansible work.
 ### 2. Workflow Loop
 
 1. `git pull --rebase` to stay current.
-2. `make dev-env` (runs the hardening script with sudo) the first time on a
+2. `make dev-venv` (runs the hardening script with sudo) the first time on a
    new machine.
-3. `source .venv/bin/activate` and if anything changes, run `pip install -r requirements/dev.txt` .
+3. `source .venv/bin/activate` and run `pip install -r requirements/dev.txt` whenever dependencies change.
 4. Edit configs, roles, or templates. Keep commits intentional and documented.
 5. `make lint`  blocks merges if the style or Ansible best practices are not being met.
 6. `make inv` + the relevant playbook target(s).
@@ -38,6 +38,6 @@ The development environment is configured for repeatable Ansible work.
 
 ### 5. Review Discipline
 
-- All changes require an accompanying note in `docs/CHANGES.md` or a relevant doc
-  file so the operational context never lags behind the code.
+- Keep the relevant documentation (README, `docs/` guides, inventory comments) in
+  sync with behavior changes so the operational context never lags behind the code.
 - Favor small commits that map 1:1 with conceptual changes.

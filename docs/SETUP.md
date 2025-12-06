@@ -91,13 +91,7 @@ ansible-galaxy collection install -r requirements/requirements.yml
 ### 2.4 Repository secrets
 
 Credentials used by Kickstart and PXE provisioning are loaded from `.env`.
-A template is provided:
-
-```
-.env.example
-```
-
-To populate a real `.env`, use the provided script:
+Generate the password hashes with the helper script:
 
 ```bash
 ./scripts/generate_hashes.py
@@ -159,24 +153,19 @@ requirements/
   requirements.yml    # galaxy collections (shared)
 
 scripts/
+  dev_venv.sh         # privileged helper for creating the dev venv
   generate_hashes.py  # password hashing helper
-  cleanup.py          # repository cache cleaning
 
 docs/
+  ARCHITECTURE.md     # wiring contract and topology
+  DEV.md              # developer workflow tips
+  HOSTS.md            # role responsibilities
+  RESOURCES.md        # external reference links
   SETUP.md            # this document
 ```
 
 This structure keeps concerns separated and avoids polluting runtime nodes
 with development tools.
-
-```
-
-====================================================================
-README excerpt: Dependency Model  
-====================================================================
-Insert below an existing “Architecture” or “Design Notes” section in your README.
-
-```
 
 ## Dependency Model
 
