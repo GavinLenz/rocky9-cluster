@@ -62,7 +62,7 @@
     state: enabled
     zone: public
     permanent: yes
-  loop: "{{ pxe.firewall_allowed_subnets }}"
+  loop: "{{ pxe_settings.firewall_allowed_subnets }}"
 
 - name: Allow PXE + provisioning services on controller
   ansible.posix.firewalld:
