@@ -1,74 +1,80 @@
 ---
 - name: Ensure Python runtime packages present
   ansible.builtin.package:
-    name: "{{ python_system_packages }}"
+    name: "{{ controller_python_system_packages }}"
     state: present
   tags: venv
 
 - name: Verify Python 3 binary exists
   ansible.builtin.stat:
-    path: "{{ python_executable }}"
+    path: "{{ controller_python_executable }}"
   register: python_bin
   failed_when: not python_bin.stat.exists
   tags: venv
 
-- name: Validate Python version matches {{ python_version }}
+- name: Validate Python version matches {{ controller_python_version }}
   ansible.builtin.command:
-    cmd: "{{ python_executable }} --version"
+    cmd: "{{ controller_python_executable }} --version"
   register: python_version_check
   changed_when: false
-  failed_when: "'Python {{ python_version }}' not in ((python_version_check.stdout | default('')) ~ (python_version_check.stderr | default('')))"
+  failed_when: >-
+    'Python {{ controller_python_version }}' not in (
+      (python_version_check.stdout | default('')) ~
+      (python_version_check.stderr | default(''))
+    )
   tags: venv
 
 - name: Ensure virtual environment directory exists
   ansible.builtin.file:
-    path: "{{ venv_path }}"
+    path: "{{ controller_venv_path }}"
     state: directory
     mode: '0755'
   tags: venv
 
 - name: Create Python virtual environment (idempotent)
   ansible.builtin.command:
-    cmd: "{{ python_executable }} -m venv {{ venv_path }}"
+    cmd: "{{ controller_python_executable }} -m venv {{ controller_venv_path }}"
   args:
-    creates: "{{ venv_path }}/bin/activate"
+    creates: "{{ controller_venv_path }}/bin/activate"
   tags: venv
 
 - name: Upgrade pip and core tooling inside venv
   ansible.builtin.pip:
-    name: "{{ venv_bootstrap_packages }}"
+    name: "{{ controller_venv_bootstrap_packages }}"
     state: present
-    virtualenv: "{{ venv_path }}"
-    virtualenv_command: "{{ python_executable }} -m venv"
+    virtualenv: "{{ controller_venv_path }}"
+    virtualenv_command: "{{ controller_python_executable }} -m venv"
   tags: venv
 
 - name: Install controller dependencies inside venv
   ansible.builtin.pip:
     requirements: "{{ controller_requirements_file }}"
-    virtualenv: "{{ venv_path }}"
-    virtualenv_command: "{{ python_executable }} -m venv"
+    virtualenv: "{{ controller_venv_path }}"
+    virtualenv_command: "{{ controller_python_executable }} -m venv"
   tags: venv
 
 - name: Install required Ansible collections
   community.general.ansible_galaxy_install:
     type: collection
-    requirements_file: "{{ ansible_collections_requirements }}"
+    requirements_file: "{{ controller_ansible_collections_requirements }}"
     state: latest
   environment:
-    PATH: "{{ venv_bin }}:{{ ansible_env.PATH | default('/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin') }}"
+    PATH: >-
+      {{ controller_venv_bin }}:{{ ansible_env.PATH
+      | default('/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin') }}
   tags: venv
 
 - name: Verify Ansible installation inside venv
   ansible.builtin.command:
-    cmd: "{{ venv_ansible }} --version"
+    cmd: "{{ controller_venv_ansible }} --version"
   register: ansible_check
   changed_when: false
-  failed_when: "'[core {{ ansible_core_expected_version }}]' not in ansible_check.stdout"
+  failed_when: "'[core {{ controller_ansible_core_expected_version }}]' not in ansible_check.stdout"
   tags: venv
 
 - name: Print venv activation hint
   ansible.builtin.debug:
     msg: |
       Virtualenv ready:
-        source {{ venv_path }}/bin/activate
+        source {{ controller_venv_path }}/bin/activate
   tags: venv

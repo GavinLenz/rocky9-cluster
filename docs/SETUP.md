@@ -91,19 +91,20 @@ ansible-galaxy collection install -r requirements/requirements.yml
 ### 2.4 Repository secrets
 
 Credentials used by Kickstart and PXE provisioning are loaded from `.env`.
-A template is provided:
-
-```
-.env.example
-```
-
-To populate a real `.env`, use the provided script:
+Generate the password hashes with the helper script:
 
 ```bash
 ./scripts/generate_hashes.py
 ```
 
 Copy the output into `.env`.
+The file should contain:
+
+```
+CONTROLLER_BECOME_PASSWORD="<sudo password for controller user>"
+PXE_ROOT_PASSWORD_HASH="<kickstart root hash>"
+PXE_LOCAL_USER_PASSWORD_HASH="<kickstart local user hash (optional, defaults to root hash)>"
+```
 
 ---
 
@@ -117,6 +118,9 @@ make controller   # apply controller_common → controller → pxe on the contro
 make compute      # seed compute nodes with compute_common (SSH + Python)
 make validate     # install Pavilion locally and run controller smoke tests
 ```
+To avoid storing the sudo password in `.env`, append `ASK_BECOME_PASS=1`
+to any target (for example `ASK_BECOME_PASS=1 make controller`) and Ansible
+will prompt for the password interactively on the first run.
 
 All targets call `inventory/generator.py` directly; no static YAML inventory exists.
 
@@ -152,24 +156,19 @@ requirements/
   requirements.yml    # galaxy collections (shared)
 
 scripts/
+  dev_venv.sh         # privileged helper for creating the dev venv
   generate_hashes.py  # password hashing helper
-  cleanup.py          # repository cache cleaning
 
 docs/
+  ARCHITECTURE.md     # wiring contract and topology
+  DEV.md              # developer workflow tips
+  HOSTS.md            # role responsibilities
+  RESOURCES.md        # external reference links
   SETUP.md            # this document
 ```
 
 This structure keeps concerns separated and avoids polluting runtime nodes
 with development tools.
-
-```
-
-====================================================================
-README excerpt: Dependency Model  
-====================================================================
-Insert below an existing “Architecture” or “Design Notes” section in your README.
-
-```
 
 ## Dependency Model
 

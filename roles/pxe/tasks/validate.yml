@@ -5,9 +5,9 @@
     - name: Assert PXE directories exist
       ansible.builtin.assert:
         that:
-          - pxe.tftp_root is defined
-          - pxe.http_root is defined
-          - pxe.iso_mount is defined
+          - pxe_settings.tftp_root is defined
+          - pxe_settings.http_root is defined
+          - pxe_settings.iso_mount is defined
         fail_msg: "PXE directory variables are undefined."
         success_msg: "PXE directory paths are defined."
 
@@ -15,9 +15,9 @@
       ansible.builtin.stat:
         path: "{{ item }}"
       loop:
-        - "{{ pxe.tftp_root }}"
-        - "{{ pxe.http_root }}"
-        - "{{ pxe.iso_mount }}"
+        - "{{ pxe_settings.tftp_root }}"
+        - "{{ pxe_settings.http_root }}"
+        - "{{ pxe_settings.iso_mount }}"
       register: pxe_dirs
 
     - name: Validate PXE directories presence
@@ -29,7 +29,7 @@
 
     - name: Verify iPXE binary staged correctly
       ansible.builtin.stat:
-        path: "{{ pxe.tftp_root }}/{{ pxe.uefi_name }}"
+        path: "{{ pxe_settings.tftp_root }}/{{ pxe_settings.uefi_name }}"
       register: ipxe_bin
 
     - name: Assert iPXE binary presence
@@ -37,19 +37,19 @@
         that:
           - ipxe_bin.stat.exists
           - ipxe_bin.stat.size > 100000 # real ipxe.efi is 750-800KB
-        fail_msg: "Missing or empty iPXE binary in {{ pxe.tftp_root }}."
+        fail_msg: "Missing or empty iPXE binary in {{ pxe_settings.tftp_root }}."
         success_msg: "iPXE binary present."
 
     - name: Verify ISO mount contents
       ansible.builtin.stat:
-        path: "{{ pxe.iso_mount }}/images/pxeboot/vmlinuz"
+        path: "{{ pxe_settings.iso_mount }}/images/pxeboot/vmlinuz"
       register: iso_kernel
 
     - name: Assert ISO is properly mounted
       ansible.builtin.assert:
         that:
           - iso_kernel.stat.exists
-        fail_msg: "ISO not mounted or invalid. Check {{ pxe.iso_mount }}."
+        fail_msg: "ISO not mounted or invalid. Check {{ pxe_settings.iso_mount }}."
         success_msg: "ISO mount valid and kernel accessible."
 
     - name: Validate dnsmasq PXE config presence

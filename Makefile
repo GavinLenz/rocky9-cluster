@@ -5,8 +5,14 @@ PYTHON ?= $(if $(VIRTUAL_ENV),$(VIRTUAL_ENV)/bin/python3,$(if $(wildcard .venv/b
 PIP := $(PYTHON) -m pip
 ANSIBLE_CMD ?= ANSIBLE_NOCOWS=1 ansible-playbook
 ANSIBLE_ARGS ?= -vv
-ANSIBLE_PLAYBOOK := $(ANSIBLE_CMD) $(ANSIBLE_ARGS)
-CACHE_DIR := .ansible_cache
+ASK_BECOME_PASS ?=
+ANSIBLE_EXTRA_ARGS :=
+ifneq ($(strip $(ASK_BECOME_PASS)),)
+ANSIBLE_EXTRA_ARGS += --ask-become-pass
+endif
+ANSIBLE_PLAYBOOK := $(ANSIBLE_CMD) $(ANSIBLE_ARGS) $(ANSIBLE_EXTRA_ARGS)
+INV_CACHE_DIR := .ansible_cache
+CACHE_DIRS := $(INV_CACHE_DIR) .pytest_cache .mypy_cache .ruff_cache
 
 RUFF := $(PYTHON) -m ruff
 BLACK := $(PYTHON) -m black
@@ -23,7 +29,7 @@ PLAYBOOK_COMPUTE := $(PLAYBOOK_DIR)/compute.yml
 PLAYBOOK_PXE := $(PLAYBOOK_DIR)/pxe.yml
 PLAYBOOK_VALIDATION := $(PLAYBOOK_DIR)/validation.yml
 
-.PHONY: help hashes inv inv-show inv-clean dev-venv venv-check lint format clean controller compute pxe scheduler validate site
+.PHONY: help hashes inv inv-show inv-clean dev-venv venv-check lint format clean controller compute pxe validate
 
 help: ## Show available targets grouped by phase
 	@echo "== Development =="
@@ -33,7 +39,17 @@ help: ## Show available targets grouped by phase
 	@awk -F':.*## ' '/^[a-zA-Z0-9_.-]+:.*##/ && /hashes|inv|inv-show|inv-clean/ { printf "  %-22s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 	@echo ""
 	@echo "== Ansible =="
-	@awk -F':.*## ' '/^[a-zA-Z0-9_.-]+:.*##/ && /controller|compute|pxe|scheduler|validate|slurm/ { printf "  %-22s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
+	@awk -F':.*## ' '/^[a-zA-Z0-9_.-]+:.*##/ && /controller|compute|pxe|validate/ { printf "  %-22s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
+
+clean: ## Remove caches and temporary files
+	@echo "[CLEAN] Removing caches and temporary files..."
+	@rm -rf $(CACHE_DIRS)
+	@find . -type d -name "__pycache__" -exec rm -rf {} +
+	@find . -name "*.pyc" -delete
+	@find . -name "*.pyo" -delete
+	@rm -f $(INV_JSON)
+	@rm -rf /tmp/ansible-tmp-*
+	@echo "[CLEAN] Cleanup complete."
 
 hashes: ## Generate hashes for .env
 	chmod +x ./scripts/generate_hashes.py
@@ -43,7 +59,7 @@ inv: $(INV_JSON) ## Generate and cache dynamic inventory
 	@echo "[OK] Inventory cached at $(INV_JSON)"
 
 $(INV_JSON): $(INV_SCRIPT) $(CONFIG_YAML)
-	@mkdir -p $(CACHE_DIR)
+	@mkdir -p $(INV_CACHE_DIR)
 	@mkdir -p $(dir $(INV_JSON))
 	@echo "[BUILD] Generating inventory..."
 	@$(PYTHON) $(INV_SCRIPT) --list > $(INV_JSON)
@@ -53,7 +69,7 @@ inv-show: ## Print generated inventory JSON to stdout
 	@$(PYTHON) $(INV_SCRIPT) --list | jq .
 
 inv-clean: ## Remove cached inventory and Ansible fact cache
-	@rm -rf $(INV_JSON) $(CACHE_DIR)
+	@rm -rf $(INV_JSON) $(INV_CACHE_DIR)
 	@echo "[CLEAN] Inventory cache removed."
 
 dev-venv: ## Create and initialize Python virtual environment
@@ -78,15 +94,11 @@ format: ## Auto-format Python and YAML
 	@$(RUFF) check --fix .
 	@echo "[OK] Formatting complete."
 
-clean: ## Remove caches, venv, and temporary files
-	chmod +x ./scripts/clean.py
-	./scripts/clean.py
-
 # Playbook runners (auto-generate inventory first)
-controller: inv ## Run controller playbook (PXE + controller + scheduler)
+controller: inv ## Run controller playbook (controller_common + controller + pxe)
 	@$(ANSIBLE_PLAYBOOK) -i $(INV_JSON) $(PLAYBOOK_CONTROLLER)
 
-compute: inv ## Run compute playbook (common + scheduler)
+compute: inv ## Run compute playbook (compute_common bootstrap)
 	@$(ANSIBLE_PLAYBOOK) -i $(INV_JSON) $(PLAYBOOK_COMPUTE)
 
 pxe: inv ## Run PXE-only playbook

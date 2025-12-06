@@ -4,7 +4,7 @@
     name: "{{ item.name }}"
     state: present
     system: "{{ item.system | default(true) }}"
-  loop: "{{ common_groups }}"
+  loop: "{{ controller_common_groups }}"
 
 - name: Create cluster users
   ansible.builtin.user:
@@ -12,7 +12,7 @@
     groups: "{{ item.groups | default([]) }}"
     shell: "{{ item.shell | default('/bin/bash') }}"
     state: present
-  loop: "{{ common_users }}"
+  loop: "{{ controller_common_users }}"
 
 - name: Allow passwordless sudo for automation user
   ansible.builtin.copy:
@@ -27,12 +27,12 @@
     user: "{{ item.name }}"
     key: "{{ item.authorized_key }}"
     state: present
-  loop: "{{ common_users | selectattr('authorized_key','defined') }}"
+  loop: "{{ controller_common_users | selectattr('authorized_key', 'defined') }}"
   when: item.authorized_key | length > 0
 
 - name: Ensure baseline packages installed
   ansible.builtin.package:
-    name: "{{ common_packages }}"
+    name: "{{ controller_common_packages }}"
     state: present
 
 - name: Apply sysctl defaults
@@ -41,7 +41,7 @@
     value: "{{ item.value }}"
     state: present
     reload: yes
-  loop: "{{ common_sysctl | dict2items }}"
+  loop: "{{ controller_common_sysctl | dict2items }}"
 
 - name: Apply ulimit settings
   community.general.pam_limits:
@@ -49,4 +49,4 @@
     limit_type: "{{ item.type }}"
     limit_item: "{{ item.item }}"
     value: "{{ item.value }}"
-  loop: "{{ common_limits }}"
+  loop: "{{ controller_common_limits }}"

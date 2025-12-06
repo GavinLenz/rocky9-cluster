@@ -15,8 +15,8 @@ iseq ${default_target} fresh && goto boot_fresh || goto boot_fresh
 
 :boot_fresh
 # 4. HTTP installer with explicit stage2/repo/ks
-kernel http://{{ pxe.server_ip }}/os/images/pxeboot/vmlinuz initrd=initrd.img inst.repo=http://{{ pxe.server_ip }}/os inst.ks=http://{{ pxe.server_ip }}/ks.cfg ip=dhcp rd.neednet=1 inst.text
-initrd http://{{ pxe.server_ip }}/os/images/pxeboot/initrd.img
+kernel http://{{ pxe_settings.server_ip }}/os/images/pxeboot/vmlinuz initrd=initrd.img inst.repo=http://{{ pxe_settings.server_ip }}/os inst.ks=http://{{ pxe_settings.server_ip }}/ks.cfg ip=dhcp rd.neednet=1 inst.text
+initrd http://{{ pxe_settings.server_ip }}/os/images/pxeboot/initrd.img
 boot
 
 :boot_local

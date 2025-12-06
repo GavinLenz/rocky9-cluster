@@ -1,19 +1,23 @@
 ---
 - name: Controller
   block:
-    - import_tasks: venv.yml
+    - name: Include controller virtualenv tasks
+      ansible.builtin.import_tasks: venv.yml
       tags:
         - venv
         - controller
-    - import_tasks: hostname.yml
+    - name: Include controller hostname tasks
+      ansible.builtin.import_tasks: hostname.yml
       tags:
         - hostname
         - controller
-    - import_tasks: static_ip.yml
+    - name: Include controller static IP tasks
+      ansible.builtin.import_tasks: static_ip.yml
       tags:
         - static_ip
         - controller
-    - import_tasks: validate_ip.yml
+    - name: Include controller IP validation tasks
+      ansible.builtin.import_tasks: validate_ip.yml
       tags:
         - validate
         - controller

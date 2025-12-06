@@ -1,6 +1,6 @@
 ---
 # These are derived from the top-level inventory vars:
-pxe:
+pxe_settings:
   # General
   vendor: "{{ pxe_config.vendor | default('rocky') }}"
   image: "{{ pxe_config.image | default('rocky9_minimal') }}"
@@ -10,8 +10,10 @@ pxe:
   tftp_root: "{{ pxe_config.paths.tftp_root }}"
   iso_dir: "{{ pxe_config.paths.iso_dir }}"
   iso_mount: "{{ pxe_config.paths.iso_mount }}"
-  iso_path: "{{ pxe_config.paths.iso_dir }}/{{ images[pxe_config.image | default('rocky9_minimal')].name | default(pxe_config.image ~ '.iso') }}"
-  iso_url: "{{ images[pxe.image | default('rocky9_minimal')].url | default('') }}"
+  iso_path: >-
+    {{ pxe_config.paths.iso_dir }}/{{ images[pxe_config.image | default('rocky9_minimal')].name
+    | default(pxe_config.image ~ '.iso') }}
+  iso_url: "{{ images[pxe_config.image | default('rocky9_minimal')].url | default('') }}"
 
   # Networking
   boot_interface: "{{ network_config.pxe_iface }}"
@@ -39,7 +41,5 @@ pxe:
   root_password_hash: "{{ pxe_runtime_credentials.root_password_hash }}"
   local_user_password_hash: "{{ pxe_runtime_credentials.local_user_password_hash }}"
 
-# for firewall
-firewall_allowed_subnets:
-  - "10.0.0.0/24" # Cluster LAN
-  - "192.168.68.0/24" # Home LAN
+  # for firewall
+  firewall_allowed_subnets: "{{ network_config.firewall_allowed_subnets | default([]) }}"

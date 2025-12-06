@@ -1,9 +1,9 @@
 ---
-common_groups:
+controller_common_groups:
   - name: cluster
     system: true
 
-common_packages:
+controller_common_packages:
   - vim
   - git
   - curl
@@ -16,17 +16,17 @@ common_packages:
   - policycoreutils-python-utils
   - python3-netaddr
 
-common_users:
+controller_common_users:
   - name: ansible
     groups: [wheel]
     shell: /bin/bash
     authorized_key: "{{ lookup('file', '~/.ssh/id_ed25519.pub', errors='ignore') }}"
 
-common_sysctl:
+controller_common_sysctl:
   vm.swappiness: 10
   net.ipv4.ip_forward: 1
 
-common_limits:
+controller_common_limits:
   - domain: "*"
     type: "soft"
     item: "nofile"
@@ -36,9 +36,9 @@ common_limits:
     item: "nofile"
     value: 65535
 
-server_ip: "{{ network_config.server_ip }}"
-controller_core_repo_default_distribution: rocky
-controller_core_repo_map:
+controller_common_server_ip: "{{ network_config.server_ip }}"
+controller_common_core_repo_default_distribution: rocky
+controller_common_core_repo_map:
   rocky:
     - baseos
     - appstream
@@ -57,5 +57,4 @@ controller_core_repo_map:
   rhel:
     - rhel-9-for-x86_64-baseos-rpms
     - rhel-9-for-x86_64-appstream-rpms
-controller_core_repo_ids: []
-slurm_repo_gpgcheck: "{{ slurm_mirror.gpgcheck | default(0) }}"
+controller_common_core_repo_ids: []

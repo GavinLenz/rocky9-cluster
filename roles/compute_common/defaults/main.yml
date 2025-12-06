@@ -1,16 +1,15 @@
 ---
-common_groups:
+compute_common_groups:
   - name: cluster
     system: true
 
-common_packages:
+compute_common_packages:
   - python3
 
-common_users:
+compute_common_users:
   - name: ansible
     groups: [wheel]
     shell: /bin/bash
     authorized_key: "{{ lookup('file', '~/.ssh/id_ed25519.pub', errors='ignore') }}"
 
-server_ip: "{{ network_config.server_ip }}"
-slurm_repo_gpgcheck: "{{ slurm_mirror.gpgcheck | default(0) }}"
+compute_common_server_ip: "{{ network_config.server_ip }}"

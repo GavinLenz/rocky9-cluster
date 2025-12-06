@@ -4,6 +4,9 @@ This guide describes what each host role does today. The controller is feature-r
 because it owns PXE, validation, and repo state; compute nodes are intentionally
 minimal so they can be wiped and rebuilt quickly.
 
+> **WIP**: Compute nodes only get the automation user + Python today. Scheduler, storage,
+> and workload roles will be layered later as requirements solidify.
+
 ---
 
 ## 1. Controller Role

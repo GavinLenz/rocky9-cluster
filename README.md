@@ -6,6 +6,10 @@ validation via Pavilion; compute nodes stay intentionally bare so new schedulers
 application stacks can be layered later. Inventory, playbooks, and validation live in
 this repo so deployments stay deterministic.
 
+> **Status**: Work in progress. Compute nodes only receive the minimal SSH/Python bootstrap today;
+> scheduler and workload roles will be added as the control plane stabilizes. Expect breaking
+> changes until those layers are in place.
+
 ## Overview
 
 - **Topology** – One controller (“head”) with static IP `10.0.0.1`, three compute nodes
@@ -38,10 +42,11 @@ responsibilities.
    python3 -m venv .venv && source .venv/bin/activate
    pip install --upgrade pip && pip install -r requirements/dev.txt
    ```
-2. Populate `.env` with password hashes:
+2. Populate `.env` with controller sudo password + PXE hashes:
    ```bash
-   ./scripts/generate_hashes.py   # copy the output into .env (root + local user)
+   ./scripts/generate_hashes.py   # copy the output into .env (root + local user hashes)
    ```
+   Then add `CONTROLLER_BECOME_PASSWORD="<sudo password for head node>"`.
 3. Describe the cluster in `config/*.yml` (nodes, network, PXE image, role stack).
 4. Generate inventory and apply roles via the Makefile:
    ```bash
@@ -50,6 +55,9 @@ responsibilities.
    make compute      # compute_common on each compute host (once they netboot)
    make validate     # optional Pavilion install + controller smoke tests
    ```
+   Need a one-time sudo password without saving it in `.env`? Append
+   `ASK_BECOME_PASS=1` to any target (e.g., `ASK_BECOME_PASS=1 make controller`)
+   to have Ansible prompt interactively.
 
 Every target reruns the dynamic inventory; no static inventory file is committed.
 
@@ -70,7 +78,8 @@ Key documentation:
 - `docs/SETUP.md` – workstation + controller bootstrap flow (hardware/software prep)
 - `docs/ARCHITECTURE.md` – topology, control/validation flow, state surfaces
 - `docs/HOSTS.md` – controller vs compute responsibilities and troubleshooting
-- `docs/_PAV.md` – Pavilion raw-scheduler plan and suggested tests
+- `docs/DEV.md` – local workflow tips, linting gates, and review discipline
+- `docs/RESOURCES.md` – external references for Kickstart, Ansible, and validation
 
 ## Make Targets
 
@@ -81,9 +90,7 @@ Key documentation:
 | `make compute`    | Seed compute nodes with SSH user + Python          |
 | `make validate`   | Install Pavilion and run controller smoke tests    |
 | `make lint`       | Run Black, Ruff, Yamllint, ansible-lint            |
-| `make clean`      | Remove caches, virtualenv, and temp files          |
-
-Additional playbooks (`make pxe`, `scheduler`, `slurm`) are placeholders for future work.
+| `make clean`      | Remove caches and temporary files                  |
 
 ## Validation
 
@@ -105,5 +112,5 @@ are healthy before onboarding compute nodes.
 - Use `make lint` before sending patches.
 - Sensitive values (`.env`, inventory artifacts) stay out of git; `.gitignore` covers them.
 
-Questions or feature ideas? Document them under `docs/THINKING.md` or raise an issue with
+Questions or feature ideas? Capture them in the docs tree or raise an issue with
 reproduction steps and inventory snippets (redacted as needed).

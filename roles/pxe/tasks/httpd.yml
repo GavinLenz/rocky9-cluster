@@ -1,11 +1,11 @@
 ---
 - name: Install webserver for PXE
-  package:
+  ansible.builtin.package:
     name: httpd
     state: present
 
 - name: Deploy PXE Apache config
-  template:
+  ansible.builtin.template:
     src: apache_pxe.conf.j2
     dest: /etc/httpd/conf.d/pxe.conf
     owner: root
