@@ -8,7 +8,6 @@ ignore: |
   .github/workflows
 
 rules:
-  indentation: disable
   braces:
     max-spaces-inside: 1
   line-length:

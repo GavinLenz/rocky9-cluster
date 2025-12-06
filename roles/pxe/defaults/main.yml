@@ -40,6 +40,4 @@ pxe:
   local_user_password_hash: "{{ pxe_runtime_credentials.local_user_password_hash }}"
 
 # for firewall
-firewall_allowed_subnets:
-  - "10.0.0.0/24" # Cluster LAN
-  - "192.168.68.0/24" # Home LAN
+firewall_allowed_subnets: "{{ network_config.firewall_allowed_subnets | default([]) }}"

@@ -6,7 +6,9 @@ PIP := $(PYTHON) -m pip
 ANSIBLE_CMD ?= ANSIBLE_NOCOWS=1 ansible-playbook
 ANSIBLE_ARGS ?= -vv
 ANSIBLE_PLAYBOOK := $(ANSIBLE_CMD) $(ANSIBLE_ARGS)
-CACHE_DIR := .ansible_cache
+
+INV_CACHE_DIR := .ansible_cache
+CACHE_DIRS := .ansible_cache .pytest_cache .mypy_cache .ruff_cache
 
 RUFF := $(PYTHON) -m ruff
 BLACK := $(PYTHON) -m black
@@ -35,6 +37,16 @@ help: ## Show available targets grouped by phase
 	@echo "== Ansible =="
 	@awk -F':.*## ' '/^[a-zA-Z0-9_.-]+:.*##/ && /controller|compute|pxe|scheduler|validate|slurm/ { printf "  %-22s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 
+clean: ## Remove caches, venv, and temporary files
+	@echo "[CLEAN] Removing caches, venv, and temporary files..."
+	@rm -rf $(CACHE_DIRS)
+	@find . -type d -name "__pycache__" -exec rm -rf {} +
+	@find . -name "*.pyc" -delete
+	@find . -name "*.pyo" -delete
+	@rm -f $(INV_JSON)
+	@rm -rf /tmp/ansible-tmp-*
+	@echo "[CLEAN] Cleanup complete."
+
 hashes: ## Generate hashes for .env
 	chmod +x ./scripts/generate_hashes.py
 	@$(PYTHON) ./scripts/generate_hashes.py
@@ -43,7 +55,7 @@ inv: $(INV_JSON) ## Generate and cache dynamic inventory
 	@echo "[OK] Inventory cached at $(INV_JSON)"
 
 $(INV_JSON): $(INV_SCRIPT) $(CONFIG_YAML)
-	@mkdir -p $(CACHE_DIR)
+	@mkdir -p $(INV_CACHE_DIR)
 	@mkdir -p $(dir $(INV_JSON))
 	@echo "[BUILD] Generating inventory..."
 	@$(PYTHON) $(INV_SCRIPT) --list > $(INV_JSON)
@@ -77,10 +89,6 @@ format: ## Auto-format Python and YAML
 	@$(BLACK) .
 	@$(RUFF) check --fix .
 	@echo "[OK] Formatting complete."
-
-clean: ## Remove caches, venv, and temporary files
-	chmod +x ./scripts/clean.py
-	./scripts/clean.py
 
 # Playbook runners (auto-generate inventory first)
 controller: inv ## Run controller playbook (PXE + controller + scheduler)

@@ -104,6 +104,13 @@ To populate a real `.env`, use the provided script:
 ```
 
 Copy the output into `.env`.
+The file should contain:
+
+```
+CONTROLLER_BECOME_PASSWORD="<sudo password for controller user>"
+PXE_ROOT_PASSWORD_HASH="<kickstart root hash>"
+PXE_LOCAL_USER_PASSWORD_HASH="<kickstart local user hash (optional, defaults to root hash)>"
+```
 
 ---
 

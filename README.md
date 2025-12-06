@@ -38,10 +38,11 @@ responsibilities.
    python3 -m venv .venv && source .venv/bin/activate
    pip install --upgrade pip && pip install -r requirements/dev.txt
    ```
-2. Populate `.env` with password hashes:
+2. Populate `.env` with controller sudo password + PXE hashes:
    ```bash
-   ./scripts/generate_hashes.py   # copy the output into .env (root + local user)
+   ./scripts/generate_hashes.py   # copy the output into .env (root + local user hashes)
    ```
+   Then add `CONTROLLER_BECOME_PASSWORD="<sudo password for head node>"`.
 3. Describe the cluster in `config/*.yml` (nodes, network, PXE image, role stack).
 4. Generate inventory and apply roles via the Makefile:
    ```bash

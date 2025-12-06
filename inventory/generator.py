@@ -49,6 +49,7 @@ def build_inventory() -> tuple[dict[str, Any], dict[str, Any]]:
     pxe = cfg.get("pxe", {}).get("pxe", {})
 
     # Load secret credentials from .env
+    controller_become_password = ENV.get("CONTROLLER_BECOME_PASSWORD")
     root_hash = ENV.get("PXE_ROOT_PASSWORD_HASH")
     local_hash = ENV.get("PXE_LOCAL_USER_PASSWORD_HASH")
 
@@ -81,6 +82,8 @@ def build_inventory() -> tuple[dict[str, Any], dict[str, Any]]:
         }
         # Allow arbitrary host-level vars from config/nodes.yml
         hostvars[name].update(node.get("variables", {}))
+        if controller_become_password and "ansible_become_password" not in hostvars[name]:
+            hostvars[name]["ansible_become_password"] = controller_become_password
 
     # Compute vars
     for name, node in compute_nodes.items():
